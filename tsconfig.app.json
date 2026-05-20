@@ -13,6 +13,7 @@
     //追加
 
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",//baseURLのCF側での型チェックを回避する
     "paths": {
     "@/*": ["./src/*"]
     }
