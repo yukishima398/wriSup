@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { listWorks, createWork, updateWork, deleteWork } from '@/repositories/workRepository'
 import type { Work, WorkInput } from '@/types/work'
 import WorkFormDialog from '@/components/WorkFormDialog.vue'
+
+const router = useRouter()
 
 // リアクティブな状態
 const works = ref<Work[]>([])
@@ -84,6 +87,12 @@ function formatDate(date: Date): string {
     day: '2-digit',
   }).format(date)
 }
+
+function goToDetail(work: Work) {
+  if (work.id === undefined) return
+  router.push(`/works/${work.id}`)
+}
+
 </script>
 
 <template>
@@ -117,11 +126,12 @@ function formatDate(date: Date): string {
       <article
         v-for="work in works"
         :key="work.id"
-        class="bg-white rounded-lg border border-slate-200 p-6 hover:shadow-md transition-shadow"
+        class="bg-white rounded-lg border border-slate-200 p-6 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+        @click="goToDetail(work)"
       >
         <div class="flex items-start justify-between gap-2 mb-2">
           <h3 class="text-lg font-semibold">{{ work.title }}</h3>
-          <div class="flex items-center gap-1 shrink-0">
+          <div class="flex items-center gap-1 shrink-0" @click.stop>
             <button
               type="button"
               class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"

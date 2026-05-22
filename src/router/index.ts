@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 //vue-router という外部パッケージから、ルーターを作成するための createRouter 関数と、ブラウザの履歴を管理する createWebHistory 関数を読み込んでいる
 import HomeView from '@/views/HomeView.vue'
 //自作したコンポーネントのインポート。@はルートディレクトリ
+import WorkDetailView from '@/views/WorkDetailView.vue'
 
 const router = createRouter({
   //URLが切り替わってもページ全体のリロード（再読み込み）が発生しないように制御する
@@ -13,6 +14,12 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+    },
+    {
+      path: '/works/:id',
+      name: 'work-detail',
+      component: WorkDetailView,
+      props: true,
     },
   ],
 })
