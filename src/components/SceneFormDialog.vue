@@ -123,7 +123,7 @@ function handleCancel() {
             placeholder="例:3月15日 14:00"
           />
           <p class="text-xs text-slate-500 mt-1">
-            自由記述。「真夜中」「Loop5 3日目」など曖昧な表現でもOK。
+            「帝国暦2000/1/1」など、時系列を整理する必要がある場合
           </p>
         </div>
 
@@ -149,10 +149,10 @@ function handleCancel() {
             v-model="worldState"
             rows="2"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="このシーン終了時点でのキャラ・世界の状態(例:Bが死亡、Aが正体を知る)"
+            placeholder="このシーン終了時点でのキャラ・世界の状態(例:Bが死亡、Aの正体を知る)"
           ></textarea>
           <p class="text-xs text-slate-500 mt-1">
-            プロットの矛盾を防ぐためのメモ。
+            プロットの矛盾を防ぐためのメモ
           </p>
         </div>
 
@@ -168,7 +168,7 @@ function handleCancel() {
             placeholder="後で詰める箇所のメモ(例:[TODO: キャラAの動機を再考])"
           ></textarea>
           <p class="text-xs text-slate-500 mt-1">
-            完璧主義で止まりそうなときに「とりあえず置き」する場所。
+            完璧主義で止まりそうなときに「とりあえず置き」する場所
           </p>
         </div>
       </div>

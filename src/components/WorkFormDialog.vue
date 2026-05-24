@@ -94,7 +94,7 @@ function handleCancel() {
             v-model="title"
             type="text"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="例:道化は遊戯で苦るい死ぬ"
+            placeholder="例:転生したらペンでした"
           />
         </div>
 
@@ -106,7 +106,7 @@ function handleCancel() {
             v-model="goal"
             rows="2"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="作品の最終的な着地点。例:すべての参加者の救済"
+            placeholder="最悪ここに着地させよう。例:主人公がAランクになる"
           ></textarea>
         </div>
 
@@ -118,7 +118,7 @@ function handleCancel() {
             v-model="theme"
             rows="2"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="作品を通じて描きたい主題。例:ループと因果"
+            placeholder="作品を通じて描きたい主題。例:成長と父性愛"
           ></textarea>
         </div>
       </div>

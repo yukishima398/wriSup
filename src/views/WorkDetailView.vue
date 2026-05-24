@@ -30,9 +30,9 @@ import {
   FORESHADOW_STATUS_COLORS,
 } from '@/types/foreshadow'
 
-//現在のURL情報を取得。route.paramsやqueryなど
+//現在のURL情報を取得　route.paramsやqueryなど
 const route = useRoute()
-//ページ遷移のための操作。push、backなど
+//ページ遷移のための操作　push、backなど
 const router = useRouter()
 
 // URL から作品 ID を取得(文字列で来るので数値に変換)
@@ -44,14 +44,14 @@ const scenes = ref<Scene[]>([])
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const isSceneDialogOpen = ref(false)
-// 編集対象のシーンか判別する。null なら新規作成モード
+// 編集対象のシーンか判別する　null なら新規作成モード
 const editingScene = ref<Scene | null>(null)
 // 伏線の状態
 const foreshadows = ref<Foreshadow[]>([])
 const statusFilter = ref<ForeshadowStatus | 'all'>('all')
 // 伏線ダイアログの状態
 const isForeshadowDialogOpen = ref(false)
-// 編集対象の伏線。null なら新規作成モード
+// 編集対象の伏線　null なら新規作成モード
 const editingForeshadow = ref<Foreshadow | null>(null)
 
 // 新規伏線ダイアログを開く
@@ -97,7 +97,7 @@ async function handleDeleteForeshadow(foreshadow: Foreshadow) {
   if (foreshadow.id === undefined) return
 
   const confirmed = window.confirm(
-    `伏線「${foreshadow.title}」を削除しますか?\n\nこの操作は取り消せません。`
+    `伏線「${foreshadow.title}」を削除しますか?\n\nこの操作は取り消せません　`
   )
   if (!confirmed) return
 
@@ -239,7 +239,7 @@ async function handleDeleteScene(scene: Scene) {
   if (scene.id === undefined) return
 
   const confirmed = window.confirm(
-    `「${scene.title || '無題'}」を削除しますか?\n\nこの操作は取り消せません。\nこのシーンに紐付いた伏線の参照は自動的に外れます。`
+    `「${scene.title || '無題'}」を削除しますか?\n\nこの操作は取り消せません　\nこのシーンに紐付いた伏線の参照は自動的に外れます　`
   )
   if (!confirmed) return
 
@@ -274,7 +274,7 @@ async function handleMoveDown(scene: Scene) {
   }
 }
 
-// 「これ以上上に動かせない」かどうか。渡されたシーンaがシーンたちの先頭か確認
+// 「これ以上上に動かせない」かどうか　渡されたシーンaがシーンたちの先頭か確認
 // オプショナルチュイニングを使っているので、scenes.valueが空配列の場合も安全にfalseを返す
 function isFirst(scene: Scene): boolean {
   return scenes.value[0]?.id === scene.id
@@ -348,8 +348,8 @@ function isLast(scene: Scene): boolean {
           v-if="scenes.length === 0"
           class="bg-white rounded-lg border border-slate-200 p-8 text-center"
         >
-          <p class="text-slate-600 mb-2">まだシーンが登録されていません。</p>
-          <p class="text-sm text-slate-500">右上の「+ 新規シーン」から追加してください。</p>
+          <p class="text-slate-600 mb-2">まだシーンが登録されていません　</p>
+          <p class="text-sm text-slate-500">右上の「+ 新規シーン」から追加してください　</p>
         </div>
 
         <!-- 　シーンカード一覧 -->
@@ -469,8 +469,8 @@ function isLast(scene: Scene): boolean {
           v-if="foreshadows.length === 0"
           class="bg-white rounded-lg border border-slate-200 p-8 text-center"
         >
-          <p class="text-slate-600 mb-2">まだ伏線が登録されていません。</p>
-          <p class="text-sm text-slate-500">右上の「+ 新規伏線」から追加してください。</p>
+          <p class="text-slate-600 mb-2">まだ伏線が登録されていません</p>
+          <p class="text-sm text-slate-500">右上の「+ 新規伏線」から追加してください</p>
         </div>
 
         <!-- フィルタ結果が0件の時 -->
@@ -478,7 +478,7 @@ function isLast(scene: Scene): boolean {
           v-else-if="filteredForeshadows.length === 0"
           class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
         >
-          このステータスの伏線はありません。
+          このステータスの伏線はありません
         </div>
 
         <!-- 伏線カード一覧 -->

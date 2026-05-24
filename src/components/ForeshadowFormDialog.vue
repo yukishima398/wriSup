@@ -166,7 +166,7 @@ function handleCancel() {
           v-if="scenes.length === 0"
           class="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-800"
         >
-          ⚠️ このシーンの作品にはまだシーンが登録されていません。シーン紐付けは後から編集できます。
+          ⚠️ このシーンの作品にはまだシーンが登録されていません。シーン紐付けは後から編集できます
         </div>
 
         <!-- 張ったシーン -->
@@ -184,7 +184,7 @@ function handleCancel() {
             </option>
           </select>
           <p class="text-xs text-slate-500 mt-1">
-            この伏線が実際に書かれる(または書かれた)シーン。
+            この伏線が実際に書かれる(または書かれた)シーン
           </p>
         </div>
 
@@ -203,7 +203,7 @@ function handleCancel() {
             </option>
           </select>
           <p class="text-xs text-slate-500 mt-1">
-            この伏線が回収される(または回収された)シーン。
+            この伏線が回収される(または回収された)シーン
           </p>
         </div>
       </div>
