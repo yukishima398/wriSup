@@ -16,9 +16,11 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      //:idは動的セグメント。変数として扱う。1とか2とかに置き換えられる。　
       path: '/works/:id',
       name: 'work-detail',
       component: WorkDetailView,
+      //props...親(使う側)から子に渡すデータ
       props: true,
     },
   ],

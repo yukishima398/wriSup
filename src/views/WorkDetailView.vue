@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWork } from '@/repositories/workRepository'
 import {
@@ -7,10 +7,28 @@ import {
   createScene,
   updateScene,
   deleteScene,
+  moveSceneUp,
+  moveSceneDown,
 } from '@/repositories/sceneRepository'
+import {
+  listForeshadowsByWork,
+  createForeshadow,
+  updateForeshadow,
+  deleteForeshadow,
+} from '@/repositories/foreshadowRepository'
 import type { Work } from '@/types/work'
 import type { Scene, SceneInput } from '@/types/scene'
+import type {
+  Foreshadow,
+  ForeshadowStatus,
+  ForeshadowInput,
+} from '@/types/foreshadow'
 import SceneFormDialog from '@/components/SceneFormDialog.vue'
+import ForeshadowFormDialog from '@/components/ForeshadowFormDialog.vue'
+import {
+  FORESHADOW_STATUS_LABELS,
+  FORESHADOW_STATUS_COLORS,
+} from '@/types/foreshadow'
 
 //現在のURL情報を取得。route.paramsやqueryなど
 const route = useRoute()
@@ -28,8 +46,70 @@ const error = ref<string | null>(null)
 const isSceneDialogOpen = ref(false)
 // 編集対象のシーンか判別する。null なら新規作成モード
 const editingScene = ref<Scene | null>(null)
+// 伏線の状態
+const foreshadows = ref<Foreshadow[]>([])
+const statusFilter = ref<ForeshadowStatus | 'all'>('all')
+// 伏線ダイアログの状態
+const isForeshadowDialogOpen = ref(false)
+// 編集対象の伏線。null なら新規作成モード
+const editingForeshadow = ref<Foreshadow | null>(null)
 
-// 作品とシーンを並列取得
+// 新規伏線ダイアログを開く
+function openCreateForeshadowDialog() {
+  editingForeshadow.value = null
+  isForeshadowDialogOpen.value = true
+}
+
+// 編集伏線ダイアログを開く
+function openEditForeshadowDialog(foreshadow: Foreshadow) {
+  editingForeshadow.value = foreshadow
+  isForeshadowDialogOpen.value = true
+}
+
+// ダイアログを閉じる
+function closeForeshadowDialog() {
+  isForeshadowDialogOpen.value = false
+  editingForeshadow.value = null
+}
+
+// 伏線保存処理(新規・編集の分岐)
+async function handleForeshadowSubmit(input: ForeshadowInput) {
+  try {
+    if (editingForeshadow.value && editingForeshadow.value.id !== undefined) {
+      // 編集モード
+      await updateForeshadow({
+        id: editingForeshadow.value.id,
+        ...input,
+      })
+    } else {
+      // 新規作成モード
+      await createForeshadow(input)
+    }
+    closeForeshadowDialog()
+    await refreshForeshadows()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '保存に失敗しました')
+  }
+}
+
+// 伏線削除処理
+async function handleDeleteForeshadow(foreshadow: Foreshadow) {
+  if (foreshadow.id === undefined) return
+
+  const confirmed = window.confirm(
+    `伏線「${foreshadow.title}」を削除しますか?\n\nこの操作は取り消せません。`
+  )
+  if (!confirmed) return
+
+  try {
+    await deleteForeshadow(foreshadow.id)
+    await refreshForeshadows()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '削除に失敗しました')
+  }
+}
+
+// 作品とシーン、伏線を並列取得
 async function fetchAll() {
   try {
     if (isNaN(workId)) {
@@ -38,9 +118,10 @@ async function fetchAll() {
     }
 
     // 作品とシーンを並列で取得
-    const [workResult, scenesResult] = await Promise.all([
+    const [workResult, scenesResult, foreshadowsResult] = await Promise.all([
       getWork(workId),
       listScenesByWork(workId),
+      listForeshadowsByWork(workId),
     ])
 
     if (!workResult) {
@@ -50,6 +131,7 @@ async function fetchAll() {
 
     work.value = workResult
     scenes.value = scenesResult
+    foreshadows.value = foreshadowsResult
   } catch (e) {
     error.value = e instanceof Error ? e.message : '読み込みに失敗しました'
   } finally {
@@ -64,6 +146,46 @@ async function refreshScenes() {
   } catch (e) {
     alert(e instanceof Error ? e.message : 'シーンの再読み込みに失敗しました')
   }
+}
+
+// 伏線一覧だけ再取得
+async function refreshForeshadows() {
+  try {
+    foreshadows.value = await listForeshadowsByWork(workId)
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '伏線の再読み込みに失敗しました')
+  }
+}
+
+// シーン削除時には伏線も再取得が必要(参照外しの反映のため)
+async function refreshScenesAndForeshadows() {
+  await Promise.all([refreshScenes(), refreshForeshadows()])
+}
+
+// ステータスフィルタを適用した伏線一覧
+const filteredForeshadows = computed(() => {
+  if (statusFilter.value === 'all') {
+    return foreshadows.value
+  }
+  return foreshadows.value.filter((f) => f.status === statusFilter.value)
+})
+
+// ステータス別の件数(タブの数字表示用)
+const statusCounts = computed(() => {
+  return {
+    all: foreshadows.value.length,
+    planned: foreshadows.value.filter((f) => f.status === 'planned').length,
+    placed: foreshadows.value.filter((f) => f.status === 'placed').length,
+    resolved: foreshadows.value.filter((f) => f.status === 'resolved').length,
+  }
+})
+
+// シーンID からシーンタイトルを取得するヘルパー
+function getSceneLabel(sceneId: number | undefined): string {
+  if (sceneId === undefined) return '未設定'
+  const scene = scenes.value.find((s) => s.id === sceneId)
+  if (!scene) return '(削除されたシーン)'
+  return `#${scene.order} ${scene.title || '無題'}`
 }
 
 onMounted(fetchAll)
@@ -117,16 +239,50 @@ async function handleDeleteScene(scene: Scene) {
   if (scene.id === undefined) return
 
   const confirmed = window.confirm(
-    `「${scene.title || '無題'}」を削除しますか?\n\nこの操作は取り消せません。`
+    `「${scene.title || '無題'}」を削除しますか?\n\nこの操作は取り消せません。\nこのシーンに紐付いた伏線の参照は自動的に外れます。`
   )
   if (!confirmed) return
 
   try {
     await deleteScene(scene.id)
-    await refreshScenes()
+    // シーン削除で伏線の参照が外れるから、両方再取得
+    await refreshScenesAndForeshadows()
   } catch (e) {
     alert(e instanceof Error ? e.message : '削除に失敗しました')
   }
+}
+
+// シーンを1つ上に移動
+async function handleMoveUp(scene: Scene) {
+  if (scene.id === undefined) return
+  try {
+    await moveSceneUp(scene.id)
+    await refreshScenes()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '移動に失敗しました')
+  }
+}
+
+// シーンを1つ下に移動
+async function handleMoveDown(scene: Scene) {
+  if (scene.id === undefined) return
+  try {
+    await moveSceneDown(scene.id)
+    await refreshScenes()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '移動に失敗しました')
+  }
+}
+
+// 「これ以上上に動かせない」かどうか。渡されたシーンaがシーンたちの先頭か確認
+// オプショナルチュイニングを使っているので、scenes.valueが空配列の場合も安全にfalseを返す
+function isFirst(scene: Scene): boolean {
+  return scenes.value[0]?.id === scene.id
+}
+
+// 「これ以上下に動かせない」かどうか
+function isLast(scene: Scene): boolean {
+  return scenes.value[scenes.value.length - 1]?.id === scene.id
 }
 
 
@@ -212,6 +368,24 @@ async function handleDeleteScene(scene: Scene) {
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
                   <button
+                  type="button"
+                  class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  :disabled="isFirst(scene)"
+                  title="上に移動"
+                  @click="handleMoveUp(scene)"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  :disabled="isLast(scene)"
+                  title="下に移動"
+                  @click="handleMoveDown(scene)"
+                >
+                  ↓
+                </button>
+                  <button
                     type="button"
                     class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
                     @click="openEditSceneDialog(scene)"
@@ -251,12 +425,136 @@ async function handleDeleteScene(scene: Scene) {
         </div>
       </section>
 
+      <!-- 伏線一覧 -->
+      <section class="mt-10">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold">🔗 伏線一覧</h3>
+          <button
+            type="button"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+            @click="openCreateForeshadowDialog"
+          >
+            + 新規伏線
+          </button>
+        </div>
+
+        <!-- ステータスフィルタ -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button
+            type="button"
+            class="px-3 py-1 text-sm rounded-md transition-colors"
+            :class="statusFilter === 'all'
+              ? 'bg-slate-800 text-white'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+            @click="statusFilter = 'all'"
+          >
+            全て ({{ statusCounts.all }})
+          </button>
+          <button
+            v-for="status in (['planned', 'placed', 'resolved'] as ForeshadowStatus[])"
+            :key="status"
+            type="button"
+            class="px-3 py-1 text-sm rounded-md transition-colors"
+            :class="statusFilter === status
+              ? 'bg-slate-800 text-white'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+            @click="statusFilter = status"
+          >
+            {{ FORESHADOW_STATUS_LABELS[status] }} ({{ statusCounts[status] }})
+          </button>
+        </div>
+
+        <!-- 伏線が0件の時 -->
+        <div
+          v-if="foreshadows.length === 0"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center"
+        >
+          <p class="text-slate-600 mb-2">まだ伏線が登録されていません。</p>
+          <p class="text-sm text-slate-500">右上の「+ 新規伏線」から追加してください。</p>
+        </div>
+
+        <!-- フィルタ結果が0件の時 -->
+        <div
+          v-else-if="filteredForeshadows.length === 0"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+        >
+          このステータスの伏線はありません。
+        </div>
+
+        <!-- 伏線カード一覧 -->
+        <div v-else class="space-y-3">
+          <article
+            v-for="foreshadow in filteredForeshadows"
+            :key="foreshadow.id"
+            class="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-shadow"
+          >
+            <!-- タイトル + ステータスバッジ + ボタン -->
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <span
+                  class="text-xs font-medium px-2 py-0.5 rounded shrink-0"
+                  :class="FORESHADOW_STATUS_COLORS[foreshadow.status]"
+                >
+                  {{ FORESHADOW_STATUS_LABELS[foreshadow.status] }}
+                </span>
+                <h4 class="font-semibold truncate">{{ foreshadow.title }}</h4>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                  @click="openEditForeshadowDialog(foreshadow)"
+                >
+                  編集
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  @click="handleDeleteForeshadow(foreshadow)"
+                >
+                  削除
+                </button>
+              </div>
+            </div>
+
+            <!-- 説明 -->
+            <p
+              v-if="foreshadow.description"
+              class="text-sm text-slate-600 whitespace-pre-wrap mb-3"
+            >
+              {{ foreshadow.description }}
+            </p>
+
+            <!-- シーン紐付け情報 -->
+            <div class="space-y-1 pt-2 border-t border-slate-100 text-xs">
+              <p class="text-slate-600">
+                <span class="text-slate-400">張ったシーン:</span>
+                {{ getSceneLabel(foreshadow.placedSceneId) }}
+              </p>
+              <p class="text-slate-600">
+                <span class="text-slate-400">回収予定シーン:</span>
+                {{ getSceneLabel(foreshadow.resolvedSceneId) }}
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <!-- シーン追加・編集ダイアログ -->
       <SceneFormDialog
         :is-open="isSceneDialogOpen"
         :work-id="workId"
         @close="closeSceneDialog"
         @submit="handleSceneSubmit"
+      />
+      <!-- 伏線追加・編集ダイアログ -->
+      <ForeshadowFormDialog
+        :is-open="isForeshadowDialogOpen"
+        :work-id="workId"
+        :scenes="scenes"
+        :editing-foreshadow="editingForeshadow ?? undefined"
+        @close="closeForeshadowDialog"
+        @submit="handleForeshadowSubmit"
       />
 
     </div>
