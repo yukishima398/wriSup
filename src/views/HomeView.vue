@@ -68,7 +68,7 @@ async function handleDelete(work: Work) {
   if (work.id === undefined) return
 
   const confirmed = window.confirm(
-    `「${work.title}」を削除しますか?\n\nこの操作は取り消せません。`
+    `「${work.title}」を削除しますか?\n\nこの操作は取り消せません`
   )
   if (!confirmed) return
 
@@ -118,8 +118,8 @@ function goToDetail(work: Work) {
     </div>
 
     <div v-else-if="works.length === 0" class="bg-white rounded-lg border border-slate-200 p-8 text-center">
-      <p class="text-slate-600 mb-2">まだ作品が登録されていません。</p>
-      <p class="text-sm text-slate-500">右上の「+ 新規作品」から作品を追加してください。</p>
+      <p class="text-slate-600 mb-2">まだ作品が登録されていません</p>
+      <p class="text-sm text-slate-500">右上の「+ 新規作品」から作品を追加してください</p>
     </div>
 
     <div v-else class="space-y-4">

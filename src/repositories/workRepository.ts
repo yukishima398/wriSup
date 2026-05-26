@@ -1,5 +1,7 @@
 import { db } from '@/db'
 import type { Work, WorkInput, WorkUpdate } from '@/types/work'
+import { deleteScenesByWork } from '@/repositories/sceneRepository'
+import { deleteForeshadowsByWork } from '@/repositories/foreshadowRepository'
 
 /**
  * 作品を新規作成する
@@ -51,8 +53,16 @@ export async function updateWork(update: WorkUpdate): Promise<void> {
 
 /**
  * 作品を削除する
+ * 関連するシーン・伏線も連鎖的に削除される
+ *
  * @param id 削除する作品の ID
  */
 export async function deleteWork(id: number): Promise<void> {
-  await db.works.delete(id)
+  await db.transaction('rw', db.works, db.scenes, db.foreshadows, async () => {
+    // 関連データを先に削除
+    await deleteForeshadowsByWork(id)
+    await deleteScenesByWork(id)
+    // 作品自体を削除
+    await db.works.delete(id)
+  })
 }

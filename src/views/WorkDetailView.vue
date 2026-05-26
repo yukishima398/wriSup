@@ -29,6 +29,7 @@ import {
   FORESHADOW_STATUS_LABELS,
   FORESHADOW_STATUS_COLORS,
 } from '@/types/foreshadow'
+import { formatScenesAsText } from '@/utils/sceneFormatter'
 
 //現在のURL情報を取得　route.paramsやqueryなど
 const route = useRoute()
@@ -156,6 +157,46 @@ async function refreshForeshadows() {
     alert(e instanceof Error ? e.message : '伏線の再読み込みに失敗しました')
   }
 }
+
+// コピー状態管理(UIフィードバック用)
+const copyState = ref<'idle' | 'success' | 'error'>('idle')
+
+// シーンをテキストとしてコピー
+async function copyScenesToClipboard() {
+  if (!work.value) return
+
+  if (scenes.value.length === 0) {
+    alert('コピーするシーンがありません')
+    return
+  }
+
+  try {
+    const text = formatScenesAsText(work.value, scenes.value)
+    await navigator.clipboard.writeText(text)
+    copyState.value = 'success'
+
+    // 2秒後に元に戻す
+    setTimeout(() => {
+      copyState.value = 'idle'
+    }, 2000)
+  } catch (e) {
+    copyState.value = 'error'
+    alert('コピーに失敗しました。ブラウザのクリップボード権限を確認してください。')
+
+    setTimeout(() => {
+      copyState.value = 'idle'
+    }, 2000)
+  }
+}
+
+// コピーボタンの表示テキスト
+const copyButtonLabel = computed(() => {
+  switch (copyState.value) {
+    case 'success': return '✅ コピーしました'
+    case 'error': return '❌ コピー失敗'
+    default: return '📋 全シーンをコピー'
+  }
+})
 
 // シーン削除時には伏線も再取得が必要(参照外しの反映のため)
 async function refreshScenesAndForeshadows() {
@@ -328,20 +369,33 @@ function isLast(scene: Scene): boolean {
       </header>
 
     <!-- シーン一覧 -->
-      <section>
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold">📝 シーン一覧</h3>
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-slate-500">全{{ scenes.length }}シーン</span>
-            <button
-              type="button"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-              @click="openCreateSceneDialog"
-            >
-              + 新規シーン
-            </button>
-          </div>
-        </div>
+    <section>
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <h3 class="text-lg font-semibold">📝 シーン一覧</h3>
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-sm text-slate-500">全{{ scenes.length }}シーン</span>
+        <button
+          type="button"
+          class="px-3 py-2 text-sm font-medium rounded-md transition-colors"
+          :class="copyState === 'success'
+            ? 'bg-green-100 text-green-700'
+            : copyState === 'error'
+              ? 'bg-red-100 text-red-700'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+          :disabled="scenes.length === 0"
+          @click="copyScenesToClipboard"
+        >
+          {{ copyButtonLabel }}
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+          @click="openCreateSceneDialog"
+        >
+          + 新規シーン
+        </button>
+      </div>
+    </div>
 
         <!-- シーンが0件の時 -->
         <div

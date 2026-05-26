@@ -1,5 +1,42 @@
-# Vue 3 + TypeScript + Vite
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+# さっかのあめ-執筆支援ツール-
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+https://wri-sup.pages.dev/
+
+### なぜ作ったか
+
+ゲーム、長編小説、アニメ...あらゆる創作物において、「エタり」「設定の破綻」は最大の敵です。
+「さっかのあめ」はあなたの創作物を一つレベルアップさせます。
+
+##  主な機能
+- 複数の作品を登録・管理
+- 作品ごとに「ゴール」「テーマ」を設定し、常時表示(ゴールさえ決めておけば、最悪そこだけ書けば良いわけです)
+
+### シーン管理
+- シーンの追加・編集・削除
+- 上下ボタンによる並び替え
+- 作品世界の日時(自由記述)で時系列を管理
+- シーン終了時点の世界状態をメモ
+- [TODO] 用の置き場フィールド
+- 全シーンをテキストとしてクリップボードにコピー(整形済み)
+
+### 伏線管理
+- 伏線の追加・編集・削除
+- 3ステータス(構想中・張り済み・回収済み)による管理
+- ステータスフィルタタブで未回収伏線を絞り込み
+- 各伏線を「張ったシーン」「回収シーン」に紐付け
+
+##  今後の展望-要望があればどしどしお寄せください-
+-　複数デバイスでのデータ登録機能
+-　キャラクターの呼び名整理機能
+
+##  技術スタック
+
+| カテゴリ | 採用技術 |
+|---------|---------|
+| フロントエンド | Vue 3 (Composition API), TypeScript |
+| スタイリング | Tailwind CSS 4 |
+| ルーティング | Vue Router 4 |
+| ビルドツール | Vite |
+| データベース | IndexedDB (Dexie.js) |
+| ホスティング | Cloudflare Pages |

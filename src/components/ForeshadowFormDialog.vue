@@ -58,11 +58,11 @@ watch(() => props.isOpen, (newValue) => {
 const statusHint = computed(() => {
   switch (status.value) {
     case 'planned':
-      return 'まだ書いていない、これから張る予定の段階。'
+      return 'まだ書いていない、これから張る予定の段階'
     case 'placed':
-      return 'すでに本文に書いた、まだ回収していない段階。'
+      return 'すでに本文に書いた、まだ回収していない段階'
     case 'resolved':
-      return '物語内で回収まで完了した段階。'
+      return '物語内で回収まで完了した段階'
   }
 })
 
