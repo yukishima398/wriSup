@@ -11,6 +11,7 @@ import {
   FORESHADOW_STATUS_COLORS,
 } from '@/types/foreshadow'
 
+
 // props
 const props = defineProps<{
   isOpen: boolean
@@ -43,16 +44,18 @@ const status = ref<ForeshadowStatus>('planned')
 const placedSceneId = ref<number | undefined>(undefined)
 const resolvedSceneId = ref<number | undefined>(undefined)
 
-// isOpen が変わったら状態初期化
+// isOpen が変わったら状態を初期化
 watch(() => props.isOpen, (newValue) => {
   if (newValue) {
-    title.value = props.editingForeshadow?.title ?? ''
-    description.value = props.editingForeshadow?.description ?? ''
-    status.value = props.editingForeshadow?.status ?? 'planned'
-    placedSceneId.value = props.editingForeshadow?.placedSceneId
-    resolvedSceneId.value = props.editingForeshadow?.resolvedSceneId
+    // 編集モードなら editingForeshadow から、新規モードなら初期値
+    const ef = props.editingForeshadow
+    title.value = ef?.title ?? ''
+    description.value = ef?.description ?? ''
+    status.value = ef?.status ?? 'planned'
+    placedSceneId.value = ef?.placedSceneId
+    resolvedSceneId.value = ef?.resolvedSceneId
   }
-})
+}, { immediate: true })
 
 // ステータス別のヒントメッセージ
 const statusHint = computed(() => {

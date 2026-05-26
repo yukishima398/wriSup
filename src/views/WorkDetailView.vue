@@ -598,6 +598,7 @@ function isLast(scene: Scene): boolean {
       <SceneFormDialog
         :is-open="isSceneDialogOpen"
         :work-id="workId"
+        :editing-scene="editingScene ?? undefined"
         @close="closeSceneDialog"
         @submit="handleSceneSubmit"
       />
