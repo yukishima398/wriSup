@@ -30,6 +30,15 @@ import {
   FORESHADOW_STATUS_COLORS,
 } from '@/types/foreshadow'
 import { formatScenesAsText } from '@/utils/sceneFormatter'
+import {
+  listCharactersByWork,
+  createCharacter,
+  updateCharacter,
+  deleteCharacter,
+} from '@/repositories/characterRepository'
+import type { Character, CharacterInput } from '@/types/character'
+import CharacterFormDialog from '@/components/CharacterFormDialog.vue'
+
 
 //現在のURL情報を取得　route.paramsやqueryなど
 const route = useRoute()
@@ -54,6 +63,8 @@ const statusFilter = ref<ForeshadowStatus | 'all'>('all')
 const isForeshadowDialogOpen = ref(false)
 // 編集対象の伏線　null なら新規作成モード
 const editingForeshadow = ref<Foreshadow | null>(null)
+// キャラクターの状態
+const characters = ref<Character[]>([])
 
 // 新規伏線ダイアログを開く
 function openCreateForeshadowDialog() {
@@ -118,11 +129,12 @@ async function fetchAll() {
       return
     }
 
-    // 作品とシーンを並列で取得
-    const [workResult, scenesResult, foreshadowsResult] = await Promise.all([
+    // 作品・シーン・伏線・キャラクターを並列で取得
+    const [workResult, scenesResult, foreshadowsResult, charactersResult] = await Promise.all([
       getWork(workId),
       listScenesByWork(workId),
       listForeshadowsByWork(workId),
+      listCharactersByWork(workId),
     ])
 
     if (!workResult) {
@@ -133,6 +145,7 @@ async function fetchAll() {
     work.value = workResult
     scenes.value = scenesResult
     foreshadows.value = foreshadowsResult
+    characters.value = charactersResult
   } catch (e) {
     error.value = e instanceof Error ? e.message : '読み込みに失敗しました'
   } finally {
@@ -155,6 +168,74 @@ async function refreshForeshadows() {
     foreshadows.value = await listForeshadowsByWork(workId)
   } catch (e) {
     alert(e instanceof Error ? e.message : '伏線の再読み込みに失敗しました')
+  }
+}
+
+// キャラクター一覧だけ再取得
+async function refreshCharacters() {
+  try {
+    characters.value = await listCharactersByWork(workId)
+  } catch (e) {
+    alert(e instanceof Error ? e.message : 'キャラクターの再読み込みに失敗しました')
+  }
+}
+
+// キャラダイアログの状態
+const isCharacterDialogOpen = ref(false)
+const editingCharacter = ref<Character | null>(null)
+
+// 新規キャラダイアログを開く
+function openCreateCharacterDialog() {
+  editingCharacter.value = null
+  isCharacterDialogOpen.value = true
+}
+
+// 編集キャラダイアログを開く
+function openEditCharacterDialog(character: Character) {
+  editingCharacter.value = character
+  isCharacterDialogOpen.value = true
+}
+
+// ダイアログを閉じる
+function closeCharacterDialog() {
+  isCharacterDialogOpen.value = false
+  editingCharacter.value = null
+}
+
+// キャラ作成処理
+async function handleCharacterSubmit(input: CharacterInput) {
+  try {
+    if (editingCharacter.value && editingCharacter.value.id !== undefined) {
+      // 編集モード
+      await updateCharacter({
+        id: editingCharacter.value.id,
+        ...input,
+      })
+    } else {
+      // 新規作成モード
+      await createCharacter(input)
+    }
+    closeCharacterDialog()
+    await refreshCharacters()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '保存に失敗しました')
+  }
+}
+
+// キャラ削除処理
+async function handleDeleteCharacter(character: Character) {
+  if (character.id === undefined) return
+
+  const confirmed = window.confirm(
+    `キャラクター「${character.name}」を削除しますか?\n\nこの操作は取り消せません。`
+  )
+  if (!confirmed) return
+
+  try {
+    await deleteCharacter(character.id)
+    await refreshCharacters()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '削除に失敗しました')
   }
 }
 
@@ -325,8 +406,6 @@ function isFirst(scene: Scene): boolean {
 function isLast(scene: Scene): boolean {
   return scenes.value[scenes.value.length - 1]?.id === scene.id
 }
-
-
 </script>
 
 <template>
@@ -594,6 +673,80 @@ function isLast(scene: Scene): boolean {
         </div>
       </section>
 
+<!-- キャラクター一覧 -->
+<section class="mt-10">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold">👥 キャラクター一覧</h3>
+    <button
+      type="button"
+      class="px-4 py-2 mb-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+      @click="openCreateCharacterDialog"
+    >
+      + 新規キャラ
+    </button>
+  </div>
+
+  <!-- キャラが0件の時 -->
+  <div
+    v-if="characters.length === 0"
+    class="bg-white rounded-lg border border-slate-200 p-8 text-center"
+  >
+    <p class="text-slate-600 mb-2">まだキャラクターが登録されていません</p>
+    <p class="text-sm text-slate-500">右上の「+ 新規キャラ」から追加してください</p>
+  </div>
+
+  <!-- キャラクターカード一覧 -->
+  <div v-else class="space-y-3">
+    <article
+      v-for="character in characters"
+      :key="character.id"
+      class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md transition-shadow"
+    >
+      <!-- 名前 + ボタン -->
+      <div class="flex items-start justify-between gap-2 mb-3">
+        <h4 class="text-lg font-semibold truncate flex-1 min-w-0">{{ character.name }}</h4>
+        <div class="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+            @click="openEditCharacterDialog(character)"
+          >
+            編集
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            @click="handleDeleteCharacter(character)"
+          >
+            削除
+          </button>
+        </div>
+      </div>
+
+      <!-- 可変フィールド一覧 -->
+      <dl
+        v-if="character.customFields.length > 0"
+        class="space-y-1 text-sm"
+      >
+        <div
+          v-for="field in character.customFields"
+          :key="field.id"
+          class="flex gap-3"
+        >
+          <dt class="text-slate-400 shrink-0">{{ field.name || '(項目名未設定)' }}:</dt>
+          <dd class="text-slate-700 whitespace-pre-wrap flex-1">
+            {{ field.value || '—' }}
+          </dd>
+        </div>
+      </dl>
+
+      <p v-else class="text-sm text-slate-500">
+        まだ詳細が記載されていません。
+      </p>
+    </article>
+  </div>
+</section>
+
       <!-- シーン追加・編集ダイアログ -->
       <SceneFormDialog
         :is-open="isSceneDialogOpen"
@@ -610,6 +763,14 @@ function isLast(scene: Scene): boolean {
         :editing-foreshadow="editingForeshadow ?? undefined"
         @close="closeForeshadowDialog"
         @submit="handleForeshadowSubmit"
+      />
+      <!-- キャラクター追加・編集ダイアログ -->
+      <CharacterFormDialog
+        :is-open="isCharacterDialogOpen"
+        :work-id="workId"
+        :editing-character="editingCharacter ?? undefined"
+        @close="closeCharacterDialog"
+        @submit="handleCharacterSubmit"
       />
 
     </div>

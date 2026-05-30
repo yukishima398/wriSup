@@ -68,7 +68,7 @@ async function handleDelete(work: Work) {
   if (work.id === undefined) return
 
   const confirmed = window.confirm(
-    `「${work.title}」を削除しますか?\n\nこの操作は取り消せません`
+    `「${work.title}」を削除しますか?\nキャラ・シーンなど全てが削除されます\nこの操作は取り消せません`
   )
   if (!confirmed) return
 
@@ -98,7 +98,7 @@ function goToDetail(work: Work) {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-semibold">📚 あなたの作品</h2>
+      <h2 class="text-xl font-semibold">あなたの作品</h2>
       <button
         type="button"
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"

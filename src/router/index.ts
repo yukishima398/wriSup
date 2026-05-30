@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 //自作したコンポーネントのインポート。@はルートディレクトリ
 import WorkDetailView from '@/views/WorkDetailView.vue'
+import CharacterDetailView from '@/views/CharacterDetailView.vue'
 
 const router = createRouter({
   //URLが切り替わってもページ全体のリロード（再読み込み）が発生しないように制御する
@@ -21,6 +22,12 @@ const router = createRouter({
       name: 'work-detail',
       component: WorkDetailView,
       //props...親(使う側)から子に渡すデータ
+      props: true,
+    },
+    {
+      path: '/works/:workId/characters/:characterId',
+      name: 'character-detail',
+      component: CharacterDetailView,
       props: true,
     },
   ],
