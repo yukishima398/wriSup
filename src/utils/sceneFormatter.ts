@@ -107,8 +107,6 @@ export function formatSceneAsText(scene: Scene): string {
         lines.push(scene.todoNotes)
         lines.push('')
       }
-
-    lines.push('────────────────────────')
     lines.push('')
 
     return lines.join('\n')

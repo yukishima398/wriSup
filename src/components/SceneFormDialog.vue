@@ -167,9 +167,6 @@ function handleCancel() {
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="後で詰める箇所のメモ(例:[TODO: キャラAの動機を再考])"
           ></textarea>
-          <p class="text-xs text-slate-500 mt-1">
-            完璧主義で止まりそうなときに「とりあえず置き」する場所
-          </p>
         </div>
       </div>
 
