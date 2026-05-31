@@ -29,7 +29,7 @@ import {
   FORESHADOW_STATUS_LABELS,
   FORESHADOW_STATUS_COLORS,
 } from '@/types/foreshadow'
-import { formatScenesAsText } from '@/utils/sceneFormatter'
+import { formatScenesAsText,formatSceneAsText } from '@/utils/sceneFormatter'
 import {
   listCharactersByWork,
   createCharacter,
@@ -239,6 +239,12 @@ async function handleDeleteCharacter(character: Character) {
   }
 }
 
+// キャラ詳細ページに遷移
+function goToCharacterDetail(character: Character) {
+  if (character.id === undefined) return
+  router.push(`/works/${workId}/characters/${character.id}`)
+}
+
 // コピー状態管理(UIフィードバック用)
 const copyState = ref<'idle' | 'success' | 'error'>('idle')
 
@@ -270,12 +276,28 @@ async function copyScenesToClipboard() {
   }
 }
 
+// 個別コピー機能
+async function copySceneToClipboard(scene: Scene) {
+  try {
+    const text = formatSceneAsText(scene)
+    await navigator.clipboard.writeText(text)
+
+  } catch (e) {
+    copyState.value = 'error'
+    alert('コピーに失敗しました。ブラウザのクリップボード権限を確認してください。')
+
+    setTimeout(() => {
+      copyState.value = 'idle'
+    }, 2000)
+  }
+}
+
 // コピーボタンの表示テキスト
 const copyButtonLabel = computed(() => {
   switch (copyState.value) {
     case 'success': return '✅ コピーしました'
     case 'error': return '❌ コピー失敗'
-    default: return '📋 全シーンをコピー'
+    default: return '全シーンコピー'
   }
 })
 
@@ -501,6 +523,13 @@ function isLast(scene: Scene): boolean {
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
                   <button
+                    type="button"
+                    class="px-2 py-2 text-sm font-medium rounded-md transition-colors bg-blue-600 active:scale-95 text-white"
+                    @click="copySceneToClipboard(scene)"
+                  >
+                    {{ 'シーンをコピー' }}
+                  </button>
+                  <button
                   type="button"
                   class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   :disabled="isFirst(scene)"
@@ -700,23 +729,24 @@ function isLast(scene: Scene): boolean {
     <article
       v-for="character in characters"
       :key="character.id"
-      class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md transition-shadow"
+      class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+      @click="goToCharacterDetail(character)"
     >
       <!-- 名前 + ボタン -->
       <div class="flex items-start justify-between gap-2 mb-3">
         <h4 class="text-lg font-semibold truncate flex-1 min-w-0">{{ character.name }}</h4>
-        <div class="flex items-center gap-1 shrink-0">
+        <div class="flex items-center gap-1 shrink-0" @click.stop>
           <button
             type="button"
             class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
-            @click="openEditCharacterDialog(character)"
+            @click.stop="openEditCharacterDialog(character)"
           >
             編集
           </button>
           <button
             type="button"
             class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
-            @click="handleDeleteCharacter(character)"
+            @click.stop="handleDeleteCharacter(character)"
           >
             削除
           </button>
