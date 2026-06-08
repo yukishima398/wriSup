@@ -6,6 +6,8 @@ import type {
   CharacterField,
 } from '@/types/character'
 import { createEmptyField } from '@/types/character'
+import CharacterAvatar from '@/components/CharacterAvatar.vue'
+import { compressToBlob } from '@/utils/imageProcessor'
 
 // props
 const props = defineProps<{
@@ -34,15 +36,20 @@ const submitLabel = computed(() =>
 // フォーム状態
 const name = ref('')
 const customFields = ref<CharacterField[]>([])
+// プロフィール画像(Blob)
+const photo = ref<Blob | undefined>(undefined)
+// 画像処理中フラグ(連打防止)
+const isProcessingImage = ref(false)
 
 // isOpen が変わったら状態を初期化
 watch(() => props.isOpen, (newValue) => {
   if (newValue) {
     name.value = props.editingCharacter?.name ?? ''
-    // 編集モードは既存データを deep copy(親のデータを壊さないため)
     customFields.value = props.editingCharacter?.customFields
       ? structuredClone(toRaw(props.editingCharacter.customFields))
       : []
+    // photo は Blob なので構造的にコピー不要(参照渡しでOK、変更しない)
+    photo.value = props.editingCharacter?.photo
   }
 })
 
@@ -54,6 +61,30 @@ function addField() {
 // 項目を削除
 function removeField(id: string) {
   customFields.value = customFields.value.filter((f) => f.id !== id)
+}
+
+// 画像ファイルを選択して圧縮
+async function handleImageChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  isProcessingImage.value = true
+  try {
+    const compressedBlob = await compressToBlob(file)
+    photo.value = compressedBlob
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '画像の処理に失敗しました')
+  } finally {
+    isProcessingImage.value = false
+    // input をリセット(同じファイルを再選択できるように)
+    input.value = ''
+  }
+}
+
+// 画像を削除
+function removeImage() {
+  photo.value = undefined
 }
 
 // 項目を上に移動
@@ -87,6 +118,7 @@ function handleSubmit() {
         name: f.name.trim(),
         value: f.value.trim(),
       })),
+    photo: photo.value,
   })
 }
 
@@ -100,7 +132,6 @@ function handleCancel() {
   <div
     v-if="isOpen"
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
-    @click.self="handleCancel"
   >
     <!-- モーダル本体 -->
     <div class="bg-white rounded-lg shadow-xl w-full max-w-lg my-8">
@@ -129,6 +160,55 @@ function handleCancel() {
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="名前を入力..."
           />
+        </div>
+
+        <!-- プロフィール画像 -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">
+            プロフィール画像
+          </label>
+
+          <div class="flex items-center gap-4 p-3 bg-slate-50 border border-slate-200 rounded-md">
+            <!-- プレビュー -->
+            <CharacterAvatar
+              :name="name || 'キャラ'"
+              :photo="photo"
+              size="lg"
+            />
+
+            <!-- 操作ボタン群 -->
+            <div class="flex flex-col gap-2 flex-1 min-w-0">
+              <!-- ファイル選択 -->
+              <label
+                class="inline-flex items-center justify-center px-3 py-1.5 text-sm bg-white border border-slate-300 rounded-md cursor-pointer hover:bg-slate-100 transition-colors"
+                :class="{ 'opacity-50 cursor-not-allowed': isProcessingImage }"
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  :disabled="isProcessingImage"
+                  @change="handleImageChange"
+                />
+                {{ isProcessingImage ? '処理中...' : (photo ? '画像を変更' : '画像を選択') }}
+              </label>
+
+              <!-- 削除ボタン(画像があるときだけ) -->
+              <button
+                v-if="photo"
+                type="button"
+                class="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                @click="removeImage"
+              >
+                画像を削除
+              </button>
+
+              <!-- 説明 -->
+              <p class="text-xs text-slate-500">
+                128x128 px に圧縮されます
+              </p>
+            </div>
+          </div>
         </div>
 
         <!-- 可変フィールド -->

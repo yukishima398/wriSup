@@ -5,6 +5,7 @@ import { getWork } from '@/repositories/workRepository'
 import { getCharacter } from '@/repositories/characterRepository'
 import type { Work } from '@/types/work'
 import type { Character } from '@/types/character'
+import CharacterAvatar from '@/components/CharacterAvatar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,10 +90,17 @@ function goBackToWork() {
 
     <!-- キャラ情報 -->
     <div v-else-if="character">
-      <!-- 名前 -->
-      <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
-        <h2 class="text-2xl font-bold">{{ character.name }}</h2>
-      </header>
+        <!-- 名前 -->
+        <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
+          <div class="flex items-center gap-4">
+            <CharacterAvatar
+              :name="character.name"
+              :photo="character.photo"
+              size="lg"
+            />
+            <h2 class="text-2xl font-bold truncate">{{ character.name }}</h2>
+          </div>
+        </header>
 
       <!-- 可変フィールド一覧 -->
       <section class="mb-8">
@@ -123,13 +131,13 @@ function goBackToWork() {
         </div>
       </section>
 
-      <!-- 行動の一元管理(Day 8 で実装予定) -->
+      <!-- 行動の一元管理 -->
       <section>
         <h3 class="text-lg font-semibold mb-3">📍 行動の一元管理</h3>
         <div class="bg-slate-50 border border-dashed border-slate-300 rounded-lg p-8 text-center">
-          <p class="text-slate-600 mb-1">この機能は今後実装予定です。</p>
+          <p class="text-slate-600 mb-1">この機能は今後実装予定です👷</p>
           <p class="text-sm text-slate-500">
-            このキャラクターが登場する全シーンと、各シーンでの思惑をまとめて表示します。
+            このキャラクターが登場する全シーンと、各シーンでの思惑をまとめて表示する　予定です
           </p>
         </div>
       </section>

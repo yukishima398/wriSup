@@ -38,6 +38,7 @@ import {
 } from '@/repositories/characterRepository'
 import type { Character, CharacterInput } from '@/types/character'
 import CharacterFormDialog from '@/components/CharacterFormDialog.vue'
+import CharacterAvatar from '@/components/CharacterAvatar.vue'
 
 
 //現在のURL情報を取得　route.paramsやqueryなど
@@ -732,9 +733,21 @@ function isLast(scene: Scene): boolean {
       class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
       @click="goToCharacterDetail(character)"
     >
-      <!-- 名前 + ボタン -->
-      <div class="flex items-start justify-between gap-2 mb-3">
-        <h4 class="text-lg font-semibold truncate flex-1 min-w-0">{{ character.name }}</h4>
+      <!-- アバター + 名前 + ボタン -->
+      <div class="flex items-start gap-3 mb-3">
+        <!-- アバター -->
+        <CharacterAvatar
+          :name="character.name"
+          :photo="character.photo"
+          size="md"
+        />
+
+        <!-- 名前 -->
+        <h4 class="text-lg font-semibold truncate flex-1 min-w-0 self-center">
+          {{ character.name }}
+        </h4>
+
+        <!-- ボタン群 -->
         <div class="flex items-center gap-1 shrink-0" @click.stop>
           <button
             type="button"

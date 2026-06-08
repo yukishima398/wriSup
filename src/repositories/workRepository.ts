@@ -14,7 +14,7 @@ import { deleteCharactersByWork } from '@/repositories/characterRepository'
 //上はJSdoc。型定義のようなものとVscodeで方が表示されるようにするのを兼ねている
 export async function createWork(input: WorkInput): Promise<number> {
   const now = new Date()
-  const id = await db.works.add({
+  const id = await db.works.add({//dbの中からworksを指定
     ...input,
     createdAt: now,
     updatedAt: now,

@@ -98,7 +98,6 @@ function handleCancel() {
   <div
     v-if="isOpen"
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
-    @click.self="handleCancel"
   >
     <!-- モーダル本体 -->
     <div class="bg-white rounded-lg shadow-xl w-full max-w-lg my-8">

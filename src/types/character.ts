@@ -26,6 +26,13 @@ export interface CharacterField {
   
     /** 自由項目の配列(年齢・性格・関係性などを任意に追加) */
     customFields: CharacterField[]
+
+    /**
+     * プロフィール画像(Blob)
+     * 128x128 にリサイズ・圧縮済み
+     * 画像なしの場合は undefined
+     */
+    photo?: Blob
   
     /** 作成日時 */
     createdAt: Date
