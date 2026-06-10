@@ -39,6 +39,13 @@ import {
 import type { Character, CharacterInput } from '@/types/character'
 import CharacterFormDialog from '@/components/CharacterFormDialog.vue'
 import CharacterAvatar from '@/components/CharacterAvatar.vue'
+import {
+  listSceneCharactersByWork,
+  deleteSceneCharacter,
+} from '@/repositories/sceneCharacterRepository'
+import type { SceneCharacter } from '@/types/sceneCharacter'
+import SceneCharacterManagerDialog from '@/components/SceneCharacterManagerDialog.vue'
+import { listSceneCharactersByScenes } from '@/repositories/sceneCharacterRepository'
 
 
 //現在のURL情報を取得　route.paramsやqueryなど
@@ -66,6 +73,13 @@ const isForeshadowDialogOpen = ref(false)
 const editingForeshadow = ref<Foreshadow | null>(null)
 // キャラクターの状態
 const characters = ref<Character[]>([])
+// シーン×キャラ紐付けの一覧(作品全体)
+const sceneCharacters = ref<SceneCharacter[]>([])
+// 開いているポップアップの ID(null なら全て閉)
+const openPopoverId = ref<number | null>(null)
+  // シーン×キャラ管理ダイアログの状態
+const isSceneCharacterManagerOpen = ref(false)
+const managingScene = ref<Scene | null>(null)
 
 // 新規伏線ダイアログを開く
 function openCreateForeshadowDialog() {
@@ -130,7 +144,7 @@ async function fetchAll() {
       return
     }
 
-    // 作品・シーン・伏線・キャラクターを並列で取得
+    // 作品・シーン・伏線・キャラを並列で取得
     const [workResult, scenesResult, foreshadowsResult, charactersResult] = await Promise.all([
       getWork(workId),
       listScenesByWork(workId),
@@ -147,11 +161,23 @@ async function fetchAll() {
     scenes.value = scenesResult
     foreshadows.value = foreshadowsResult
     characters.value = charactersResult
+    await refreshSceneCharacters()
+
+    // シーン取得後、sceneCharacters を一括取得
+    await refreshSceneCharacters()
   } catch (e) {
     error.value = e instanceof Error ? e.message : '読み込みに失敗しました'
   } finally {
     isLoading.value = false
   }
+}
+
+// sceneCharacters を再取得(モーダルから戻った後などに使う)
+async function refreshSceneCharacters() {
+  const sceneIds = scenes.value
+    .map((s) => s.id)
+    .filter((id): id is number => id !== undefined)
+  sceneCharacters.value = await listSceneCharactersByWork(sceneIds)
 }
 
 // シーン一覧だけ再取得(追加・編集・削除後に使う)
@@ -162,6 +188,29 @@ async function refreshScenes() {
     alert(e instanceof Error ? e.message : 'シーンの再読み込みに失敗しました')
   }
 }
+
+// id → Character の Map(名前・画像を O(1) で引く)
+const characterById = computed(() => {
+  const map = new Map<number, Character>()
+  for (const c of characters.value) {
+    if (c.id !== undefined) map.set(c.id, c)
+  }
+  return map
+})
+
+// sceneId → 紐付け配列 の Map(シーンカードごとの登場キャラを O(1) で引く)
+const linksBySceneId = computed(() => {
+  const map = new Map<number, SceneCharacter[]>()
+  for (const link of sceneCharacters.value) {
+    const list = map.get(link.sceneId)
+    if (list) {
+      list.push(link)
+    } else {
+      map.set(link.sceneId, [link])
+    }
+  }
+  return map
+})
 
 // 伏線一覧だけ再取得
 async function refreshForeshadows() {
@@ -178,6 +227,68 @@ async function refreshCharacters() {
     characters.value = await listCharactersByWork(workId)
   } catch (e) {
     alert(e instanceof Error ? e.message : 'キャラクターの再読み込みに失敗しました')
+  }
+}
+
+// 指定シーンに紐付くキャラ一覧を取得
+function getSceneCharactersForScene(sceneId: number): SceneCharacter[] {
+  return sceneCharacters.value.filter((sc) => sc.sceneId === sceneId)
+}
+
+// キャラ ID からキャラ情報を取得
+function getCharacterById(characterId: number): Character | undefined {
+  return characters.value.find((c) => c.id === characterId)
+}
+
+// ポップアップを開く
+function togglePopover(sceneCharacterId: number) {
+  if (openPopoverId.value === sceneCharacterId) {
+    openPopoverId.value = null  // 同じアイコンをクリック → 閉じる
+  } else {
+    openPopoverId.value = sceneCharacterId  // 別のアイコンをクリック → そちらを開く
+  }
+}
+
+// ポップアップを閉じる
+function closePopover() {
+  openPopoverId.value = null
+}
+
+// キャラ管理ダイアログを開く
+function openSceneCharacterManager(scene: Scene) {
+  managingScene.value = scene
+  isSceneCharacterManagerOpen.value = true
+}
+
+// キャラ管理ダイアログを閉じる
+function closeSceneCharacterManager() {
+  isSceneCharacterManagerOpen.value = false
+  managingScene.value = null
+}
+
+// 紐付けが変化したときの処理(ダイアログから通知される)
+async function handleSceneCharactersChanged() {
+  await refreshSceneCharacters()
+}
+
+// 紐付けを解除
+async function handleUnlinkSceneCharacter(sc: SceneCharacter) {
+  if (sc.id === undefined) return
+
+  const character = getCharacterById(sc.characterId)
+  const characterName = character?.name ?? '(削除されたキャラ)'
+
+  const confirmed = window.confirm(
+    `「${characterName}」をこのシーンから外しますか?\n\nこの操作は取り消せません。`
+  )
+  if (!confirmed) return
+
+  try {
+    await deleteSceneCharacter(sc.id)
+    closePopover()
+    await refreshSceneCharacters()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '削除に失敗しました')
   }
 }
 
@@ -306,6 +417,8 @@ const copyButtonLabel = computed(() => {
 async function refreshScenesAndForeshadows() {
   await Promise.all([refreshScenes(), refreshForeshadows()])
 }
+
+
 
 // ステータスフィルタを適用した伏線一覧
 const filteredForeshadows = computed(() => {
@@ -815,6 +928,14 @@ function isLast(scene: Scene): boolean {
         @close="closeCharacterDialog"
         @submit="handleCharacterSubmit"
       />
+
+      <!-- シーン×キャラ管理ダイアログ -->
+<SceneCharacterManagerDialog
+  :is-open="isSceneCharacterManagerOpen"
+  :scene="managingScene"
+  :characters="characters"
+  @close="closeSceneCharacterManager"
+/>
 
     </div>
   </div>

@@ -112,3 +112,20 @@ export async function deleteSceneCharactersByCharacter(
 ): Promise<void> {
   await db.sceneCharacters.where('characterId').equals(characterId).delete()
 }
+
+/**
+ * 作品に属する全 sceneCharacter を取得する
+ * (作品単位でまとめて取って、UI側で分けて使う用)
+ *
+ * @param sceneIds その作品に属するシーンの ID 配列
+ * @returns sceneCharacter（キャラ+思惑） の配列
+ */
+export async function listSceneCharactersByWork(
+  sceneIds: number[]
+): Promise<SceneCharacter[]> {
+  if (sceneIds.length === 0) return []
+  return await db.sceneCharacters
+    .where('sceneId')
+    .anyOf(sceneIds)
+    .toArray()
+}
