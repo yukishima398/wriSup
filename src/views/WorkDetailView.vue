@@ -45,7 +45,6 @@ import {
 } from '@/repositories/sceneCharacterRepository'
 import type { SceneCharacter } from '@/types/sceneCharacter'
 import SceneCharacterManagerDialog from '@/components/SceneCharacterManagerDialog.vue'
-import { listSceneCharactersByScenes } from '@/repositories/sceneCharacterRepository'
 
 
 //現在のURL情報を取得　route.paramsやqueryなど
@@ -161,7 +160,6 @@ async function fetchAll() {
     scenes.value = scenesResult
     foreshadows.value = foreshadowsResult
     characters.value = charactersResult
-    await refreshSceneCharacters()
 
     // シーン取得後、sceneCharacters を一括取得
     await refreshSceneCharacters()
@@ -228,11 +226,6 @@ async function refreshCharacters() {
   } catch (e) {
     alert(e instanceof Error ? e.message : 'キャラクターの再読み込みに失敗しました')
   }
-}
-
-// 指定シーンに紐付くキャラ一覧を取得
-function getSceneCharactersForScene(sceneId: number): SceneCharacter[] {
-  return sceneCharacters.value.filter((sc) => sc.sceneId === sceneId)
 }
 
 // キャラ ID からキャラ情報を取得
@@ -630,19 +623,12 @@ function isLast(scene: Scene): boolean {
           >
             <!-- ヘッダー部分:番号 + タイトル + 時系列 -->
             <div class="mb-3">
-              <div class="flex items-start justify-between gap-2 mb-1">
-                <div class="flex items-baseline gap-3 flex-1 min-w-0">
+              <div class="flex items-baseline gap-3 flex-1 min-w-0">
                   <span class="text-sm font-mono text-slate-400 shrink-0">#{{ scene.order }}</span>
                   <h4 class="text-lg font-semibold truncate">{{ scene.title || '無題' }}</h4>
                 </div>
+              <div class="flex items-start justify-between gap-2 mb-1">
                 <div class="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    class="px-2 py-2 text-sm font-medium rounded-md transition-colors bg-blue-600 active:scale-95 text-white"
-                    @click="copySceneToClipboard(scene)"
-                  >
-                    {{ 'シーンをコピー' }}
-                  </button>
                   <button
                   type="button"
                   class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -675,6 +661,13 @@ function isLast(scene: Scene): boolean {
                   >
                     削除
                   </button>
+                  <button
+                    type="button"
+                    class="px-2 py-2 text-sm font-medium rounded-md transition-colors bg-blue-600 active:scale-95 text-white"
+                    @click="copySceneToClipboard(scene)"
+                  >
+                    {{ 'コピー' }}
+                  </button>
                 </div>
               </div>
               <p v-if="scene.worldDateTime" class="text-sm text-slate-500 ml-8">
@@ -697,6 +690,80 @@ function isLast(scene: Scene): boolean {
                 <span class="text-amber-600">📌 TODO:</span> {{ scene.todoNotes }}
               </p>
             </div>
+
+                        <!-- 登場キャラ -->
+            <div class="flex items-center gap-2 flex-wrap pt-3 mt-3 border-t border-slate-100">
+              <span class="text-xs text-slate-400 shrink-0">登場:</span>
+
+              <!-- キャラアイコン(クリックでポップアップ) -->
+              <div
+                v-for="link in linksBySceneId.get(scene.id!) ?? []"
+                :key="link.id"
+                class="relative"
+              >
+                <button
+                  type="button"
+                  class="block rounded-full hover:ring-2 hover:ring-blue-300 transition-shadow"
+                  @click="togglePopover(link.id!)"
+                >
+                  <CharacterAvatar
+                    :name="characterById.get(link.characterId)?.name ?? '?'"
+                    :photo="characterById.get(link.characterId)?.photo"
+                    size="sm"
+                  />
+                </button>
+
+                <!-- 吹き出しポップアップ(開いているのは1つだけ) -->
+                <div
+                  v-if="openPopoverId === link.id"
+                  class="absolute z-10 top-10 left-0 w-64 bg-white border border-slate-200 rounded-lg shadow-lg p-3"
+                >
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-medium text-sm truncate">
+                      {{ characterById.get(link.characterId)?.name ?? '(削除されたキャラ)' }}
+                    </span>
+                    <button
+                      type="button"
+                      class="text-slate-400 hover:text-slate-600 leading-none shrink-0"
+                      @click="closePopover"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <p v-if="link.intent" class="text-xs text-slate-600 whitespace-pre-wrap mb-2">
+                    {{ link.intent }}
+                  </p>
+                  <p v-else class="text-xs text-slate-400 italic mb-2">思惑は未記入です</p>
+                  <div class="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                      @click="closePopover(); openSceneCharacterManager(scene)"
+                    >
+                      編集
+                    </button>
+                    <button
+                      type="button"
+                      class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      @click="handleUnlinkSceneCharacter(link)"
+                    >
+                      解除
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- キャラ追加ボタン -->
+              <button
+                type="button"
+                class="w-8 h-8 rounded-full border border-dashed border-slate-300 text-slate-400 hover:border-blue-400 hover:text-blue-500 transition-colors text-sm"
+                title="登場キャラを追加"
+                @click="openSceneCharacterManager(scene)"
+              >
+                +
+              </button>
+            </div>
+
           </article>
         </div>
       </section>
@@ -930,12 +997,13 @@ function isLast(scene: Scene): boolean {
       />
 
       <!-- シーン×キャラ管理ダイアログ -->
-<SceneCharacterManagerDialog
-  :is-open="isSceneCharacterManagerOpen"
-  :scene="managingScene"
-  :characters="characters"
-  @close="closeSceneCharacterManager"
-/>
+      <SceneCharacterManagerDialog
+        :is-open="isSceneCharacterManagerOpen"
+        :scene="managingScene"
+        :characters="characters"
+        @close="closeSceneCharacterManager"
+        @changed="handleSceneCharactersChanged"
+      />
 
     </div>
   </div>
