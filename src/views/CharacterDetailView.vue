@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWork } from '@/repositories/workRepository'
 import { getCharacter } from '@/repositories/characterRepository'
 import type { Work } from '@/types/work'
 import type { Character } from '@/types/character'
 import CharacterAvatar from '@/components/CharacterAvatar.vue'
+import { listScenesByWork } from '@/repositories/sceneRepository'
+import { listSceneCharactersByCharacter } from '@/repositories/sceneCharacterRepository'
+import type { Scene } from '@/types/scene'
+import type { SceneCharacter } from '@/types/sceneCharacter'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,11 +18,32 @@ const router = useRouter()
 const workId = Number(route.params.workId)
 const characterId = Number(route.params.characterId)
 
-// リアクティブな状態
 const work = ref<Work | null>(null)
 const character = ref<Character | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
+// この作品の全シーンえ
+const scenes = ref<Scene[]>([])
+// このキャラの紐付け一覧
+const links = ref<SceneCharacter[]>([])
+
+// このキャラの登場シーンを物語の順(order)で並べたもの
+// scenes が listsenesbysortでorderソート済みなのを利用し、シーン側を軸にリンクを拾う。
+// シーン削除で孤児になった紐付けは自然と表示されない
+const appearances = computed(() => {
+  const linkBySceneId = new Map<number, SceneCharacter>()
+  for (const link of links.value) {
+    linkBySceneId.set(link.sceneId, link)
+  }
+
+  const result: { scene: Scene; link: SceneCharacter }[] = []
+  for (const scene of scenes.value) {
+    if (scene.id === undefined) continue
+    const link = linkBySceneId.get(scene.id)
+    if (link) result.push({ scene, link })
+  }
+  return result
+})
 
 // 作品とキャラを並列取得
 async function fetchAll() {
@@ -28,9 +53,11 @@ async function fetchAll() {
       return
     }
 
-    const [workResult, characterResult] = await Promise.all([
+    const [workResult, characterResult, scenesResult, linksResult] = await Promise.all([
       getWork(workId),
       getCharacter(characterId),
+      listScenesByWork(workId),
+      listSceneCharactersByCharacter(characterId),
     ])
 
     if (!workResult) {
@@ -51,6 +78,8 @@ async function fetchAll() {
 
     work.value = workResult
     character.value = characterResult
+    scenes.value = scenesResult
+    links.value = linksResult
   } catch (e) {
     error.value = e instanceof Error ? e.message : '読み込みに失敗しました'
   } finally {
@@ -133,14 +162,44 @@ function goBackToWork() {
 
       <!-- 行動の一元管理 -->
       <section>
-        <h3 class="text-lg font-semibold mb-3">📍 行動の一元管理</h3>
-        <div class="bg-slate-50 border border-dashed border-slate-300 rounded-lg p-8 text-center">
-          <p class="text-slate-600 mb-1">この機能は今後実装予定です👷</p>
-          <p class="text-sm text-slate-500">
-            このキャラクターが登場する全シーンと、各シーンでの思惑をまとめて表示する　予定です
-          </p>
-        </div>
-      </section>
+              <h3 class="text-lg font-semibold mb-3">📍 行動の一元管理</h3>
+
+              <div
+                v-if="appearances.length === 0"
+                class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+              >
+                まだどのシーンにも登場していません。<br />
+                作品詳細ページのシーンカードにある「+」から紐付けできます。
+              </div>
+
+              <div v-else class="space-y-3">
+                <div
+                  v-for="{ scene, link } in appearances"
+                  :key="link.id"
+                  class="bg-white rounded-lg border border-slate-200 p-4"
+                >
+                  <!-- シーン情報の行 -->
+                  <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+                    <span class="text-sm font-semibold text-slate-400 shrink-0">
+                      #{{ scene.order }}
+                    </span>
+                    <span class="font-medium truncate">{{ scene.title || '無題' }}</span>
+                    <span
+                      v-if="scene.worldDateTime"
+                      class="text-xs text-slate-500 bg-slate-100 rounded px-2 py-0.5 shrink-0"
+                    >
+                      {{ scene.worldDateTime }}
+                    </span>
+                  </div>
+
+                  <!-- このシーンでの思惑 -->
+                  <p v-if="link.intent" class="text-sm text-slate-700 whitespace-pre-wrap">
+                    {{ link.intent }}
+                  </p>
+                  <p v-else class="text-sm text-slate-400 italic">思惑は未記入です</p>
+                </div>
+              </div>
+            </section>
     </div>
   </div>
 </template>

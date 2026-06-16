@@ -95,9 +95,9 @@ export function formatSceneAsText(scene: Scene): string {
     }
     lines.push('')
 
-    // 世界状態
+    // 世界の状態
     if (scene.worldState) {
-      lines.push('【世界状態】')
+      lines.push('【世界の状態】')
       lines.push(scene.worldState)
       lines.push('')
     }

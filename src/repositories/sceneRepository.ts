@@ -97,7 +97,6 @@ export async function moveSceneUp(sceneId: number): Promise<void> {
     .where('workId')
     .equals(target.workId)
     .filter((s) => s.order < target.order)
-    .reverse()
     .sortBy('order')
     .then((scenes) => scenes[scenes.length - 1])
 
@@ -132,7 +131,7 @@ export async function moveSceneDown(sceneId: number): Promise<void> {
 }
 
 /**
- * 2つのシーンの order を入れ替える(内部用)
+ * 2つのシーンの order を入れ替える
  */
 async function swapOrders(
   idA: number,
@@ -152,15 +151,13 @@ async function swapOrders(
  * 指定作品内の最大 order 値を取得する
  * シーンがなければ 0 を返す
  */
-async function getMaxOrderInWork(workId: number): Promise<number> {//promiseは非同期処理終了時にその型で返すことを約束する
-//exportしていない。よって、このファイル内でのみ使うヘルパー
+async function getMaxOrderInWork(workId: number): Promise<number> {
+  //promiseは非同期処理終了時にその型で返すことを約束する
     const scenes = await db.scenes
     .where('workId')
     .equals(workId)
     .toArray()
 
-    //シーン配列を、order 値だけの配列に変換
-    //Math.max は配列を直接受け取れない(Math.max([1,2,3]) は NaN になる)。だから配列を展開する必要がある
-  if (scenes.length === 0) return 0
-  return Math.max(...scenes.map((s) => s.order))
+    if (scenes.length === 0) return -1
+    return Math.max(...scenes.map((s) => s.order))
 }

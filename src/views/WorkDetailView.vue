@@ -691,7 +691,7 @@ function isLast(scene: Scene): boolean {
               </p>
             </div>
 
-                        <!-- 登場キャラ -->
+            <!-- 登場キャラ -->
             <div class="flex items-center gap-2 flex-wrap pt-3 mt-3 border-t border-slate-100">
               <span class="text-xs text-slate-400 shrink-0">登場:</span>
 
@@ -765,6 +765,15 @@ function isLast(scene: Scene): boolean {
             </div>
 
           </article>
+        </div>
+        <div class="flex justify-end w-full">
+          <button
+            type="button"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium mt-4"
+            @click="openCreateSceneDialog"
+          >
+            + 次のシーン
+          </button>
         </div>
       </section>
 
