@@ -36,4 +36,4 @@ https://wri-sup.pages.dev/
 ##  今後の展望 
 - 複数デバイスでのデータ登録機能
 - キャラクター間の関係性整理機能
-- 要望などがあれば https://x.com/wrisupEX まで-
+- 要望などがあれば https://x.com/wrisupEX まで
