@@ -33,6 +33,7 @@ https://wri-sup.pages.dev/
 - データベース | IndexedDB (Dexie.js) 
 - ホスティング | Cloudflare Pages 
 
-##  今後の展望 -要望などがあれば https://x.com/wrisupEX まで-
--　複数デバイスでのデータ登録機能
--　キャラクター間の関係性整理機能
+##  今後の展望 
+- 複数デバイスでのデータ登録機能
+- キャラクター間の関係性整理機能
+- 要望などがあれば https://x.com/wrisupEX まで-
