@@ -31,7 +31,12 @@ https://wri-sup.pages.dev/
 - フロントエンド | Vue 3 , TypeScript 
 - ビルドツール | Vite 
 - データベース | IndexedDB (Dexie.js) 
-- ホスティング | Cloudflare Pages 
+- ホスティング | Cloudflare Pages
+
+## 制作環境
+- 開発者:個人開発
+- 開発期間：3週間程度
+- 開発の動機:自分自身がキャラクターの管理に苦労した経験や、追いかけていた作品の更新が止まった経験から
 
 ##  今後の展望 
 - 複数デバイスでのデータ登録機能
