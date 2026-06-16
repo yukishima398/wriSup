@@ -8,30 +8,31 @@ https://wri-sup.pages.dev/
 「さっかのあめ」はそれらを防ぎ、創作物を一つレベルアップさせます
 
 ## 複雑なストーリーが一目で
-- ストーリーとキャラ、それぞれの思惑を管理
-![alt text](<readme1.png>)
+ストーリーとキャラ、それぞれの思惑を管理
+![alt text](images/readme1.png)
 
-##　伏線を可視化して読者も作者もスッキリ
-![alt text](<readme2.png>)
+## 伏線を可視化
+読者も作者もスッキリ
+![alt text](images/readme2.png)
 
-## キャラの行動を一元表示して矛盾・魅力チェック
-![alt text](<readme3.png>)
+## キャラの行動を一元表示して矛盾チェック
+魅力的で一貫したキャラクターを作れる
+![alt text](images/readme3.png)
 
 ##  機能一覧
 - 複数の作品、それぞれのシーンやキャラクターを登録・管理
 - 作品ごとに「ゴール」「テーマ」を設定
 - 各シーンに登場キャラを登録
-- 各キャラの登場シーンまとめ機能
+- 各キャラの登場シーンまとめ
 - 全シーンをテキストとしてクリップボードにコピー
 - 伏線の可視化、状態管理
 
 ##  技術スタック
-
-フロントエンド | Vue 3 , TypeScript 
-ビルドツール | Vite 
-データベース | IndexedDB (Dexie.js) 
-ホスティング | Cloudflare Pages 
+- フロントエンド | Vue 3 , TypeScript 
+- ビルドツール | Vite 
+- データベース | IndexedDB (Dexie.js) 
+- ホスティング | Cloudflare Pages 
 
 ##  今後の展望 -要望などがあれば https://x.com/wrisupEX まで-
 -　複数デバイスでのデータ登録機能
--　キャラクターの呼び名整理機能
+-　キャラクター間の関係性整理機能
