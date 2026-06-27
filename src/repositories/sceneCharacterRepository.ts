@@ -129,3 +129,17 @@ export async function listSceneCharactersByWork(
     .anyOf(sceneIds)
     .toArray()
 }
+
+/**
+ * 複数シーンに紐付く紐付けを一括取得する
+ * (作品詳細ページで全シーンカードの登場キャラ表示に使う)
+ *
+ * @param sceneIds シーン ID の配列
+ * @returns 紐付けの配列(順序保証なし)
+ */
+export async function listSceneCharactersByScenes(
+  sceneIds: number[]
+): Promise<SceneCharacter[]> {
+  if (sceneIds.length === 0) return []
+  return await db.sceneCharacters.where('sceneId').anyOf(sceneIds).toArray()
+}

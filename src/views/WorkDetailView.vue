@@ -579,7 +579,7 @@ function isLast(scene: Scene): boolean {
     <!-- シーン一覧 -->
     <section>
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <h3 class="text-lg font-semibold">📝 シーン一覧</h3>
+      <h3 class="text-lg font-semibold">シーン一覧</h3>
       <div class="flex items-center gap-2 flex-wrap">
         <span class="text-sm text-slate-500">全{{ scenes.length }}シーン</span>
         <button
@@ -780,7 +780,7 @@ function isLast(scene: Scene): boolean {
       <!-- 伏線一覧 -->
       <section class="mt-10">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold">🔗 伏線一覧</h3>
+          <h3 class="text-lg font-semibold">伏線一覧</h3>
           <button
             type="button"
             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -895,7 +895,7 @@ function isLast(scene: Scene): boolean {
 <!-- キャラクター一覧 -->
 <section class="mt-10">
   <div class="flex items-center justify-between mb-4">
-    <h3 class="text-lg font-semibold">👥 キャラクター一覧</h3>
+    <h3 class="text-lg font-semibold">キャラクター一覧</h3>
     <button
       type="button"
       class="px-4 py-2 mb-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"

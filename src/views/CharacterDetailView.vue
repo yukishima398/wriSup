@@ -133,7 +133,7 @@ function goBackToWork() {
 
       <!-- 可変フィールド一覧 -->
       <section class="mb-8">
-        <h3 class="text-lg font-semibold mb-3">📋 詳細項目</h3>
+        <h3 class="text-lg font-semibold mb-3">詳細項目</h3>
 
         <div
           v-if="character.customFields.length === 0"
@@ -162,7 +162,7 @@ function goBackToWork() {
 
       <!-- 行動の一元管理 -->
       <section>
-              <h3 class="text-lg font-semibold mb-3">📍 行動の一元管理</h3>
+              <h3 class="text-lg font-semibold mb-3">行動の一元管理</h3>
 
               <div
                 v-if="appearances.length === 0"

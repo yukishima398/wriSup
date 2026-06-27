@@ -142,13 +142,13 @@ function handleCancel() {
         <!-- 世界状態 -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">
-            🌐 世界状態
+            🌐 作品世界の趨勢など
           </label>
           <textarea
             v-model="worldState"
             rows="2"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="このシーン終了時点でのキャラ・世界の状態(例:Bが死亡、Aの正体を知る)"
+            placeholder="このシーン終了時点での世界の状態(例:帝国が侵攻開始、人類のx％が死亡)"
           ></textarea>
           <p class="text-xs text-slate-500 mt-1">
             プロットの矛盾を防ぐためのメモ
