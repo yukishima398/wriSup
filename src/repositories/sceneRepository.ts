@@ -1,5 +1,6 @@
 import { db } from '@/db'
 import type { Scene, SceneInput, SceneUpdate } from '@/types/scene'
+import { deleteSceneCharactersByScene } from '@/repositories/sceneCharacterRepository'
 
 /**
  * シーンを新規作成する
@@ -64,12 +65,17 @@ export async function updateScene(update: SceneUpdate): Promise<void> {
 }
 
 /**
- * シーンを削除する
+ * シーンを削除、キャラが登場するかも削除
  *
  * @param id 削除するシーンの ID
  */
 export async function deleteScene(id: number): Promise<void> {
-  await db.scenes.delete(id)
+  //rw→ReadWriteモード
+  await db.transaction('rw', db.scenes, db.sceneCharacters, async () => {
+    // シーンとキャラの紐付けを先に削除（ゴミを残さない）
+    await deleteSceneCharactersByScene(id)
+    await db.scenes.delete(id)
+  })
 }
 
 /**

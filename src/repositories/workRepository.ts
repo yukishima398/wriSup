@@ -5,6 +5,8 @@ import type { Work, WorkInput, WorkUpdate } from '@/types/work'
 import { deleteScenesByWork } from '@/repositories/sceneRepository'
 import { deleteForeshadowsByWork } from '@/repositories/foreshadowRepository'
 import { deleteCharactersByWork } from '@/repositories/characterRepository'
+import { listScenesByWork } from '@/repositories/sceneRepository'
+
 
 /**
  * 作品を新規作成する
@@ -63,16 +65,24 @@ export async function updateWork(update: WorkUpdate): Promise<void> {
 export async function deleteWork(id: number): Promise<void> {
   await db.transaction(
     'rw',
-    db.works,
-    db.scenes,
-    db.foreshadows,
-    db.characters,
+    //transactionの引数に含められるのは5つまでなので、配列としてわつ
+    [db.works, db.scenes, db.foreshadows, db.characters, db.sceneCharacters],
     async () => {
-      // 関連データを先に削除
+      // シーンを消す前に sceneId を集め、中間テーブルを先に掃除する
+      const scenes = await listScenesByWork(id)
+      const sceneIds = scenes
+        //Sceneから配列の中身(id)を一つずつ取り出し、idだけの配列に
+        .map((s) => s.id)
+        //変数sidを宣言し、undefinedを除く
+        .filter((sid): sid is number => sid !== undefined)
+      if (sceneIds.length > 0) {
+        await db.sceneCharacters.where('sceneId').anyOf(sceneIds).delete()
+      }
+
+      // 関連データを削除
       await deleteForeshadowsByWork(id)
       await deleteScenesByWork(id)
       await deleteCharactersByWork(id)
-      // 作品自体を削除
       await db.works.delete(id)
     }
   )

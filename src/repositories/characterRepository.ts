@@ -4,9 +4,10 @@ import type {
   CharacterInput,
   CharacterUpdate,
 } from '@/types/character'
+import { deleteSceneCharactersByCharacter } from '@/repositories/sceneCharacterRepository'
 
 /**
- * キャラクターを新規作成する
+ * キャラクターを新規作成
  *
  * @param input キャラクターの内容
  * @returns 作成されたキャラクターの ID
@@ -66,12 +67,15 @@ export async function updateCharacter(
 }
 
 /**
- * キャラクターを削除する
+ * キャラクター・その登場シーンのつながり
  *
  * @param id 削除するキャラクターの ID
  */
 export async function deleteCharacter(id: number): Promise<void> {
-  await db.characters.delete(id)
+  await db.transaction('rw', db.characters, db.sceneCharacters, async () => {
+    await deleteSceneCharactersByCharacter(id)
+    await db.characters.delete(id)
+  })
 }
 
 /**

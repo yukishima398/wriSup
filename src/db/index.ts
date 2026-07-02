@@ -46,7 +46,7 @@ export class WriSupDB extends Dexie {
       characters: '++id, workId, name, createdAt',
     })
 
-    // version 5: sceneCharacters 複合インデックスにより、組み合わせを高速検索できる
+    // version 5: sceneCharacters（キャラとシーンの結びつき） 複合インデックスにより、組み合わせを高速検索できる
     this.version(5).stores({
       works: '++id, title, createdAt',
       scenes: '++id, workId, order, createdAt',
