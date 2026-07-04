@@ -67,8 +67,6 @@ const availableCharacters = computed(() =>
   props.characters.filter((c) => c.id !== undefined && !linkedIds.value.has(c.id))
 )
 
-// ===== 読み込み =====
-
 // 紐付け一覧を DB から読み直す
 async function loadLinks() {
   if (!props.scene || props.scene.id === undefined) return
@@ -190,12 +188,12 @@ function handleClose() {
   <!-- モーダル背景 -->
   <div
     v-if="isOpen && scene"
-    class="fixed inset-0 bg-black/50 flex z-50 p-4 overflow-y-auto"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
   >
     <!-- モーダル本体 -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg m-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
       <!-- ヘッダー -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 sticky top-0 bg-white rounded-t-lg">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0">
         <div class="min-w-0">
           <h3 class="text-lg font-semibold truncate">登場キャラクター管理</h3>
           <p class="text-sm text-slate-500 truncate">
@@ -211,16 +209,14 @@ function handleClose() {
         </button>
       </div>
 
-      <div class="px-6 py-4 space-y-5">
-        <!-- ===== 紐付け済み一覧 ===== -->
+      <div class="px-6 py-4 space-y-5 flex-1 overflow-y-auto">
+        <!-- 紐付け済み一覧 -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-2">
             このシーンに登場するキャラ
           </label>
-
           <!-- 読み込み中 -->
           <p v-if="isLoading" class="text-sm text-slate-500">読み込み中...</p>
-
           <!-- 0件 -->
           <p
             v-else-if="links.length === 0"
@@ -228,7 +224,6 @@ function handleClose() {
           >
             まだ登場キャラがいません。下のフォームから追加できます。
           </p>
-
           <!-- 一覧 -->
           <div v-else class="space-y-3">
             <div
@@ -303,7 +298,7 @@ function handleClose() {
           </div>
         </div>
 
-        <!-- ===== 新規紐付けフォーム ===== -->
+        <!--  新規紐付けフォーム  -->
         <div class="border-t border-slate-200 pt-4">
           <label class="block text-sm font-medium text-slate-700 mb-2">
             キャラを追加

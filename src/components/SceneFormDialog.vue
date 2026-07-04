@@ -79,12 +79,12 @@ function handleCancel() {
   <!-- モーダル背景 overflow-y-autoでモーダルの外側をスクロール可能に。小さい画面用 -->
   <div
     v-if="isOpen"
-    class="fixed inset-0 bg-black/50 flex z-50 p-4 overflow-y-auto"
+    class="fixed inset-0 bg-black/50 flex z-50 p-4 items-center justify-center"
   >
     <!-- モーダル本体 -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg m-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
       <!-- ヘッダー sticky top-0 / sticky bottom-0:ヘッダーとフッターを固定-->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 sticky top-0 bg-white rounded-t-lg">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0">
         <h3 class="text-lg font-semibold">{{ dialogTitle }}</h3>
         <button
           type="button"
@@ -96,7 +96,7 @@ function handleCancel() {
       </div>
 
       <!-- 入力欄 -->
-      <div class="px-6 py-4 space-y-4">
+      <div class="px-6 py-4 space-y-4 flex-1 overflow-y-auto">
         <!-- タイトル placeholderで入力欄を書いておく -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">

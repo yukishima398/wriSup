@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// import logoImage from './assets/hero.png'
-// const imageUrl = logoImage
 </script>
 
 <template>
@@ -8,7 +6,7 @@
     <header class="border-b border-slate-200 bg-white">
       <div class="max-w-5xl mx-auto px-6 py-4">
         <h1 class="text-2xl font-bold">さっかのあめ(🍬)</h1>
-        <p class="text-sm text-slate-500 mt-1">だれでもストーリーを完結させられる</p>
+        <p class="text-sm text-slate-500 mt-1">執筆・創作・シナリオ管理に</p>
       </div>
     </header>
 

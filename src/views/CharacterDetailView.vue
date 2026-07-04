@@ -2,10 +2,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWork } from '@/repositories/workRepository'
-import { getCharacter } from '@/repositories/characterRepository'
+import { 
+  getCharacter, 
+  updateCharacter, 
+  deleteCharacter
+ } from '@/repositories/characterRepository'
 import type { Work } from '@/types/work'
-import type { Character } from '@/types/character'
+import type { 
+  Character, 
+  CharacterInput 
+} from '@/types/character'
 import CharacterAvatar from '@/components/CharacterAvatar.vue'
+import CharacterFormDialog from '@/components/CharacterFormDialog.vue'
 import { listScenesByWork } from '@/repositories/sceneRepository'
 import { listSceneCharactersByCharacter } from '@/repositories/sceneCharacterRepository'
 import type { Scene } from '@/types/scene'
@@ -26,6 +34,8 @@ const error = ref<string | null>(null)
 const scenes = ref<Scene[]>([])
 // このキャラの紐付け一覧
 const links = ref<SceneCharacter[]>([])
+// 編集ダイアログの開閉
+const isCharacterDialogOpen = ref(false)
 
 // このキャラの登場シーンを物語の順(order)で並べたもの
 // scenes が listsenesbysortでorderソート済みなのを利用し、シーン側を軸にリンクを拾う。
@@ -89,6 +99,50 @@ async function fetchAll() {
 
 onMounted(fetchAll)
 
+// 編集ダイアログを開く
+function openEditDialog() {
+  isCharacterDialogOpen.value = true
+}
+
+// 編集ダイアログを閉じる
+function closeEditDialog() {
+  isCharacterDialogOpen.value = false
+}
+
+// 編集内容を保存する
+async function handleCharacterSubmit(input: CharacterInput) {
+  if (!character.value || character.value.id === undefined) return
+  try {
+    await updateCharacter({
+      id: character.value.id,
+      ...input,
+    })
+    closeEditDialog()
+    // 表示中のキャラ情報を最新化する(名前・画像・項目の変更を反映)
+    character.value = (await getCharacter(character.value.id)) ?? character.value
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '保存に失敗しました')
+  }
+}
+
+// このキャラを削除する
+async function handleDeleteCharacter() {
+  if (!character.value || character.value.id === undefined) return
+
+  const confirmed = window.confirm(
+    `キャラクター「${character.value.name}」を削除しますか?\n\nこの操作は取り消せません。`
+  )
+  if (!confirmed) return
+
+  try {
+    await deleteCharacter(character.value.id)
+    // 削除後はこのページに留まれないので作品詳細へ戻る
+    goBackToWork()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '削除に失敗しました')
+  }
+}
+
 // 作品詳細ページに戻る
 function goBackToWork() {
   router.push(`/works/${workId}`)
@@ -121,20 +175,36 @@ function goBackToWork() {
     <div v-else-if="character">
         <!-- 名前 -->
         <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 flex-1">
             <CharacterAvatar
               :name="character.name"
               :photo="character.photo"
               size="lg"
             />
             <h2 class="text-2xl font-bold truncate">{{ character.name }}</h2>
+              <!-- 編集・削除ボタン -->
+              <div class="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                  @click="openEditDialog"
+                >
+                  編集
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  @click="handleDeleteCharacter"
+                >
+                  削除
+                </button>
+              </div>
           </div>
         </header>
 
       <!-- 可変フィールド一覧 -->
       <section class="mb-8">
         <h3 class="text-lg font-semibold mb-3">詳細項目</h3>
-
         <div
           v-if="character.customFields.length === 0"
           class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
@@ -158,6 +228,7 @@ function goBackToWork() {
             </div>
           </dl>
         </div>
+        
       </section>
 
       <!-- 行動の一元管理 -->
@@ -201,5 +272,14 @@ function goBackToWork() {
               </div>
             </section>
     </div>
+    <!-- キャラ編集ダイアログ -->
+    <CharacterFormDialog
+      v-if="character"
+      :is-open="isCharacterDialogOpen"
+      :work-id="workId"
+      :editing-character="character"
+      @close="closeEditDialog"
+      @submit="handleCharacterSubmit"
+    />
   </div>
 </template>
