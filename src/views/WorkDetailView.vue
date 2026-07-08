@@ -677,7 +677,7 @@ function isLast(scene: Scene): boolean {
 
             <!-- あらすじ -->
             <div v-if="scene.summary" class="mb-3">
-              <p class="text-sm text-slate-400 mb-1">あらすじ:</p>
+              <p class="text-sm text-slate-400 mb-1">あらすじ/本文:</p>
               <p class="text-slate-700 whitespace-pre-wrap">{{ scene.summary }}</p>
             </div>
 
