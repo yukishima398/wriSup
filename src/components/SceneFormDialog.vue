@@ -129,7 +129,7 @@ function handleCancel() {
         <!-- あらすじ -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">
-            あらすじ
+            あらすじ/本文
           </label>
           <textarea
             v-model="summary"

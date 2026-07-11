@@ -15,7 +15,7 @@
     </main>
     <footer>
       <p style="text-align: center; color: gray;">
-      ご要望、作って欲しいもの等はこちらに→ https://x.com/wrisupEX
+      問題はこちら→ https://x.com/wrisupEX
       </p>
     </footer>
   </div>
