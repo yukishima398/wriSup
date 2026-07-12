@@ -188,21 +188,21 @@ function handleClose() {
   <!-- モーダル背景 -->
   <div
     v-if="isOpen && scene"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 dark:bg-black/70"
   >
     <!-- モーダル本体 -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col dark:bg-slate-800">
       <!-- ヘッダー -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0 dark:border-slate-700">
         <div class="min-w-0">
           <h3 class="text-lg font-semibold truncate">登場キャラクター管理</h3>
-          <p class="text-sm text-slate-500 truncate">
+          <p class="text-sm text-slate-500 truncate dark:text-slate-400">
             #{{ scene.order }} {{ scene.title || '無題' }}
           </p>
         </div>
         <button
           type="button"
-          class="text-slate-400 hover:text-slate-600 text-2xl leading-none shrink-0"
+          class="text-slate-400 hover:text-slate-600 text-2xl leading-none shrink-0 dark:text-slate-500 dark:hover:text-slate-300"
           @click="handleClose"
         >
           ×
@@ -212,15 +212,15 @@ function handleClose() {
       <div class="px-6 py-4 space-y-5 flex-1 overflow-y-auto">
         <!-- 紐付け済み一覧 -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-2">
+          <label class="block text-sm font-medium text-slate-700 mb-2 dark:text-slate-300">
             このシーンに登場するキャラ
           </label>
           <!-- 読み込み中 -->
-          <p v-if="isLoading" class="text-sm text-slate-500">読み込み中...</p>
+          <p v-if="isLoading" class="text-sm text-slate-500 dark:text-slate-400">読み込み中...</p>
           <!-- 0件 -->
           <p
             v-else-if="links.length === 0"
-            class="text-sm text-slate-500 italic"
+            class="text-sm text-slate-500 italic dark:text-slate-400"
           >
             まだ登場キャラがいません。下のフォームから追加できます。
           </p>
@@ -229,7 +229,7 @@ function handleClose() {
             <div
               v-for="link in links"
               :key="link.id"
-              class="border border-slate-200 rounded-md p-3 bg-slate-50"
+              class="border border-slate-200 rounded-md p-3 bg-slate-50 dark:bg-slate-900 dark:border-slate-700"
             >
               <!-- キャラ情報 + 操作ボタン -->
               <div class="flex items-center gap-3 mb-2">
@@ -244,14 +244,14 @@ function handleClose() {
                 <button
                   v-if="editingId !== link.id"
                   type="button"
-                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors shrink-0"
+                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors shrink-0 dark:text-slate-300"
                   @click="startEdit(link)"
                 >
                   行動を編集
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0"
+                  class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0 dark:text-red-400 dark:hover:bg-red-950/40"
                   :disabled="isSaving"
                   @click="handleUnlink(link)"
                 >
@@ -264,13 +264,13 @@ function handleClose() {
                 <textarea
                   v-model="editingIntent"
                   rows="3"
-                  class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600"
                   placeholder="このシーンでのこのキャラの行動・狙い・内心など"
                 ></textarea>
                 <div class="flex justify-end gap-1 mt-1">
                   <button
                     type="button"
-                    class="px-3 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors"
+                    class="px-3 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors dark:text-slate-300"
                     @click="cancelEdit"
                   >
                     キャンセル
@@ -287,11 +287,11 @@ function handleClose() {
               </div>
               <p
                 v-else-if="link.intent"
-                class="text-sm text-slate-700 whitespace-pre-wrap pl-11"
+                class="text-sm text-slate-700 whitespace-pre-wrap pl-11 dark:text-slate-300"
               >
                 {{ link.intent }}
               </p>
-              <p v-else class="text-xs text-slate-400 italic pl-11">
+              <p v-else class="text-xs text-slate-400 italic pl-11 dark:text-slate-500">
                 行動は未記入です
               </p>
             </div>
@@ -299,15 +299,15 @@ function handleClose() {
         </div>
 
         <!--  新規紐付けフォーム  -->
-        <div class="border-t border-slate-200 pt-4">
-          <label class="block text-sm font-medium text-slate-700 mb-2">
+        <div class="border-t border-slate-200 pt-4 dark:border-slate-700">
+          <label class="block text-sm font-medium text-slate-700 mb-2 dark:text-slate-300">
             キャラを追加
           </label>
 
           <!-- 追加できるキャラがいない場合 -->
           <p
             v-if="availableCharacters.length === 0"
-            class="text-sm text-slate-500 italic"
+            class="text-sm text-slate-500 italic dark:text-slate-400"
           >
             追加できるキャラがいません(全員登場済み、またはキャラ未作成)
           </p>
@@ -315,7 +315,7 @@ function handleClose() {
           <div v-else class="space-y-2">
             <select
               v-model="selectedCharacterId"
-              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600"
             >
               <option value="">キャラクターを選択...</option>
               <option
@@ -329,7 +329,7 @@ function handleClose() {
             <textarea
               v-model="newIntent"
               rows="2"
-              class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600"
               placeholder="行動(あとから編集できます)"
             ></textarea>
             <button
@@ -345,10 +345,10 @@ function handleClose() {
       </div>
 
       <!-- フッター -->
-      <div class="flex items-center justify-end px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg">
+      <div class="flex items-center justify-end px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg dark:bg-slate-800 dark:border-slate-700">
         <button
           type="button"
-          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
           @click="handleClose"
         >
           閉じる

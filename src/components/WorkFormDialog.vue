@@ -67,16 +67,16 @@ function handleCancel() {
   <!-- モーダル背景 -->
   <div
     v-if="isOpen"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 dark:bg-black/70"
   >
     <!-- モーダル本体 -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md dark:bg-slate-800">
       <!-- ヘッダー -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 m-auto">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 m-auto dark:border-slate-700">
         <h3 class="text-lg font-semibold">{{ dialogTitle }}</h3>
         <button
           type="button"
-          class="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+          class="text-slate-400 hover:text-slate-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300"
           @click="handleCancel"
         >
           ×
@@ -86,47 +86,47 @@ function handleCancel() {
       <!-- 入力欄 -->
       <div class="px-6 py-4 space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
-            タイトル <span class="text-red-500">*</span>
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+            タイトル <span class="text-red-500 dark:text-red-400">*</span>
           </label>
           <input
             v-model="title"
             type="text"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="例:転生したらペンでした"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             ゴール
           </label>
           <textarea
             v-model="goal"
             rows="2"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="最悪ここに着地させよう。例:主人公がAランクになる"
           ></textarea>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             テーマ
           </label>
           <textarea
             v-model="theme"
             rows="2"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="作品を通じて描きたい主題。例:成長と父性愛"
           ></textarea>
         </div>
       </div>
 
       <!-- フッター -->
-      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
+      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
         <button
           type="button"
-          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
           @click="handleCancel"
         >
           キャンセル

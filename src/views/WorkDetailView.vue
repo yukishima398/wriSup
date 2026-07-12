@@ -742,19 +742,19 @@ function isLastChapter(chapter: Chapter): boolean {
     <!-- 戻るボタン -->
     <button
       type="button"
-      class="text-sm text-slate-600 hover:bg-slate-100 rounded-md px-3 py-1 mb-4 inline-flex items-center gap-1 transition-colors"
+      class="text-sm text-slate-600 hover:bg-slate-100 rounded-md px-3 py-1 mb-4 inline-flex items-center gap-1 transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
       @click="goBack"
     >
       ← 一覧に戻る
     </button>
 
     <!-- ローディング中 -->
-    <div v-if="isLoading" class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
+    <div v-if="isLoading" class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
       読み込み中...
     </div>
 
     <!-- エラー時 -->
-    <div v-else-if="error" class="bg-red-50 rounded-lg border border-red-200 p-8 text-red-700">
+    <div v-else-if="error" class="bg-red-50 rounded-lg border border-red-200 p-8 text-red-700 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400">
       <p class="font-semibold">エラーが発生しました</p>
       <p class="text-sm mt-1">{{ error }}</p>
     </div>
@@ -762,16 +762,16 @@ function isLastChapter(chapter: Chapter): boolean {
     <!-- 作品の情報+シーン一覧 dlなどを活かした用語&説明をよりよく伝えるためのオブジェクト -->
     <div v-else-if="work">
       <!-- 作品ヘッダー -->
-      <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
+      <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6 dark:bg-slate-800 dark:border-slate-700">
         <h2 class="text-2xl font-bold mb-3">{{ work.title }}</h2>
         <dl class="space-y-2 text-sm">
           <div class="flex gap-1">
-            <dt class="text-slate-400 shrink-0">ゴール:</dt>
-            <dd class="text-slate-700">{{ work.goal || '未設定' }}</dd>
+            <dt class="text-slate-400 shrink-0 dark:text-slate-500">ゴール:</dt>
+            <dd class="text-slate-700 dark:text-slate-300">{{ work.goal || '未設定' }}</dd>
           </div>
           <div class="flex gap-1">
-            <dt class="text-slate-400 shrink-0">テーマ:</dt>
-            <dd class="text-slate-700">{{ work.theme || '未設定' }}</dd>
+            <dt class="text-slate-400 shrink-0 dark:text-slate-500">テーマ:</dt>
+            <dd class="text-slate-700 dark:text-slate-300">{{ work.theme || '未設定' }}</dd>
           </div>
         </dl>
       </header>
@@ -781,17 +781,17 @@ function isLastChapter(chapter: Chapter): boolean {
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
       <h3 class="text-lg font-semibold">Scenes</h3>
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm text-slate-500">
+        <span class="text-sm text-slate-500 dark:text-slate-400">
           {{ chapterFilter === 'all' ? `全${scenes.length}シーン` : `${filteredScenes.length} / 全${scenes.length}シーン` }}
         </span>
         <button
           type="button"
           class="px-3 py-2 text-sm font-medium rounded-md transition-colors"
           :class="copyState === 'success'
-            ? 'bg-green-100 text-green-700'
+            ? 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300'
             : copyState === 'error'
-              ? 'bg-red-100 text-red-700'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+              ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
           :disabled="scenes.length === 0"
           @click="copyScenesToClipboard"
         >
@@ -814,7 +814,7 @@ function isLastChapter(chapter: Chapter): boolean {
             class="px-3 py-1 text-sm rounded-md transition-colors"
             :class="chapterFilter === 'all'
               ? 'bg-slate-800 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
             @click="selectChapterFilter('all')"
           >
             全て ({{ chapterCounts.all }})
@@ -824,7 +824,7 @@ function isLastChapter(chapter: Chapter): boolean {
             class="px-3 py-1 text-sm rounded-md transition-colors"
             :class="chapterFilter === 'unassigned'
               ? 'bg-slate-800 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
             @click="selectChapterFilter('unassigned')"
           >
             未分類 ({{ chapterCounts.unassigned }})
@@ -836,7 +836,7 @@ function isLastChapter(chapter: Chapter): boolean {
             class="px-3 py-1 text-sm rounded-md transition-colors"
             :class="chapterFilter === chapter.id
               ? 'bg-slate-800 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
             @click="selectChapterFilter(chapter.id!)"
           >
             {{ chapter.title }} ({{ chapterCounts.byChapterId.get(chapter.id!) ?? 0 }})
@@ -851,11 +851,11 @@ function isLastChapter(chapter: Chapter): boolean {
         </div>
 
         <!-- 選択中の章の管理コントロール -->
-        <div v-if="selectedChapter" class="flex items-center gap-1 mb-4 text-sm text-slate-500">
+        <div v-if="selectedChapter" class="flex items-center gap-1 mb-4 text-sm text-slate-500 dark:text-slate-400">
           <span class="mr-1">「{{ selectedChapter.title }}」:</span>
           <button
             type="button"
-            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300 dark:hover:bg-slate-700"
             :disabled="isFirstChapter(selectedChapter)"
             title="章を上に移動"
             @click="handleMoveChapterUp(selectedChapter)"
@@ -864,7 +864,7 @@ function isLastChapter(chapter: Chapter): boolean {
           </button>
           <button
             type="button"
-            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300 dark:hover:bg-slate-700"
             :disabled="isLastChapter(selectedChapter)"
             title="章を下に移動"
             @click="handleMoveChapterDown(selectedChapter)"
@@ -873,14 +873,14 @@ function isLastChapter(chapter: Chapter): boolean {
           </button>
           <button
             type="button"
-            class="px-3 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+            class="px-3 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
             @click="openEditChapterDialog(selectedChapter)"
           >
             編集
           </button>
           <button
             type="button"
-            class="px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            class="px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
             @click="handleDeleteChapter(selectedChapter)"
           >
             削除
@@ -890,19 +890,19 @@ function isLastChapter(chapter: Chapter): boolean {
         <!-- シーンが1つも登録されていない時 -->
         <div
           v-if="scenes.length === 0"
-          class="bg-white rounded-lg border border-slate-200 p-8 text-center"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center dark:bg-slate-800 dark:border-slate-700"
         >
-          <p class="text-slate-600 mb-2">まだシーンが登録されていません　</p>
-          <p class="text-sm text-slate-500">右上の「+ 新規シーン」から追加してください　</p>
+          <p class="text-slate-600 mb-2 dark:text-slate-300">まだシーンが登録されていません　</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400">右上の「+ 新規シーン」から追加してください　</p>
         </div>
 
         <!-- シーンはあるが、選択中の章には0件の時 -->
         <div
           v-else-if="filteredScenes.length === 0"
-          class="bg-white rounded-lg border border-slate-200 p-8 text-center"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center dark:bg-slate-800 dark:border-slate-700"
         >
-          <p class="text-slate-600 mb-2">この章にはシーンがありません</p>
-          <p class="text-sm text-slate-500">「+ 新規シーン」から追加するか、他のシーンをこの章に割り当ててください</p>
+          <p class="text-slate-600 mb-2 dark:text-slate-300">この章にはシーンがありません</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400">「+ 新規シーン」から追加するか、他のシーンをこの章に割り当ててください</p>
         </div>
 
         <!-- 　シーンカード一覧 -->
@@ -910,19 +910,19 @@ function isLastChapter(chapter: Chapter): boolean {
           <article
             v-for="scene in filteredScenes"
             :key="scene.id"
-            class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md transition-shadow"
+            class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700"
           >
             <!-- ヘッダー部分:番号 + タイトル + 時系列 -->
             <div class="mb-3">
               <div class="flex items-baseline gap-3 flex-1 min-w-0">
-                  <span class="text-sm font-mono text-slate-400 shrink-0">#{{ scene.order }}</span>
+                  <span class="text-sm font-mono text-slate-400 shrink-0 dark:text-slate-500">#{{ scene.order }}</span>
                   <h4 class="text-lg font-semibold truncate">{{ scene.title || '無題' }}</h4>
                 </div>
               <div class="flex items-start justify-between gap-2 mb-1">
                 <div class="flex items-center gap-1 shrink-0">
                   <button
                   type="button"
-                  class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300 dark:hover:bg-slate-700"
                   :disabled="isFirst(scene)"
                   title="上に移動"
                   @click="handleMoveUp(scene)"
@@ -931,7 +931,7 @@ function isLastChapter(chapter: Chapter): boolean {
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300 dark:hover:bg-slate-700"
                   :disabled="isLast(scene)"
                   title="下に移動"
                   @click="handleMoveDown(scene)"
@@ -940,28 +940,28 @@ function isLastChapter(chapter: Chapter): boolean {
                 </button>
                   <button
                     type="button"
-                    class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                    class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
                     @click="openEditSceneDialog(scene)"
                   >
                     編集
                   </button>
                   <button
                     type="button"
-                    class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
                     @click="handleDeleteScene(scene)"
                   >
                     削除
                   </button>
                   <button
                     type="button"
-                    class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors active:scale-95"
+                    class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors active:scale-95 dark:text-slate-300 dark:hover:bg-slate-700"
                     @click="copySceneToClipboard(scene)"
                   >
                     {{ 'コピー' }}
                   </button>
                 </div>
               </div>
-              <p v-if="scene.worldDateTime" class="text-sm text-slate-500 ml-2">
+              <p v-if="scene.worldDateTime" class="text-sm text-slate-500 ml-2 dark:text-slate-400">
                 🕐 {{ scene.worldDateTime }}
               </p>
             </div>
@@ -969,43 +969,43 @@ function isLastChapter(chapter: Chapter): boolean {
             <!-- あらすじ -->
             <div v-if="scene.summary" class="mb-3">
               <p class="text-sm mb-1 ml-1">ストーリー</p>
-              <div class="bg-white/80 backdrop-blur-sm border-2 border-emerald-200 rounded-sm shadow-sm p-4">
+              <div class="bg-white/80 backdrop-blur-sm border-2 border-emerald-200 rounded-sm shadow-sm p-4 dark:border-emerald-800 dark:bg-slate-800/80">
                 <p
-                  class="text-black whitespace-pre-wrap leading-6 bg-[linear-gradient(90deg,#d1fae5_1px,transparent_1px),linear-gradient(#d1fae5_1px,transparent_1px)] bg-[size:24px_24px]"
+                  class="text-black whitespace-pre-wrap leading-6 bg-[linear-gradient(90deg,#d1fae5_1px,transparent_1px),linear-gradient(#d1fae5_1px,transparent_1px)] bg-[size:24px_24px] dark:text-slate-100 dark:bg-[linear-gradient(90deg,#065f46_1px,transparent_1px),linear-gradient(#065f46_1px,transparent_1px)]"
                 >{{ scene.summary }}</p>
               </div>
             </div>
 
             <!-- 補足情報(世界状態・TODO) -->
-            <div v-if="scene.worldState || scene.todoNotes" class="space-y-1 pt-3 border-t border-slate-100">
-              <p v-if="scene.worldState" class="text-xs text-slate-600">
-                <span class="text-slate-400">🌐 世界状態:</span> {{ scene.worldState }}
+            <div v-if="scene.worldState || scene.todoNotes" class="space-y-1 pt-3 border-t border-slate-100 dark:border-slate-700">
+              <p v-if="scene.worldState" class="text-xs text-slate-600 dark:text-slate-300">
+                <span class="text-slate-400 dark:text-slate-500">🌐 世界状態:</span> {{ scene.worldState }}
               </p>
-              <p v-if="scene.todoNotes" class="text-xs text-amber-700">
-                <span class="text-amber-600">📌 TODO:</span> {{ scene.todoNotes }}
+              <p v-if="scene.todoNotes" class="text-xs text-amber-700 dark:text-amber-400">
+                <span class="text-amber-600 dark:text-amber-400">📌 TODO:</span> {{ scene.todoNotes }}
               </p>
             </div>
 
             <!-- 可変フィールド一覧 -->
             <dl
               v-if="(scene.customFields ?? []).length > 0"
-              class="space-y-1 pt-3 mt-3 border-t border-slate-100 text-xs"
+              class="space-y-1 pt-3 mt-3 border-t border-slate-100 text-xs dark:border-slate-700"
             >
               <div
                 v-for="field in scene.customFields"
                 :key="field.id"
                 class="flex gap-2"
               >
-                <dt class="text-slate-400 shrink-0">{{ field.name || '(項目名未設定)' }}:</dt>
-                <dd class="text-slate-600 whitespace-pre-wrap flex-1">
+                <dt class="text-slate-400 shrink-0 dark:text-slate-500">{{ field.name || '(項目名未設定)' }}:</dt>
+                <dd class="text-slate-600 whitespace-pre-wrap flex-1 dark:text-slate-300">
                   {{ field.value || '—' }}
                 </dd>
               </div>
             </dl>
 
             <!-- 登場キャラ -->
-            <div class="flex items-center gap-2 flex-wrap pt-3 mt-3 border-t border-slate-100">
-              <span class="text-xs text-slate-400 shrink-0">登場:</span>
+            <div class="flex items-center gap-2 flex-wrap pt-3 mt-3 border-t border-slate-100 dark:border-slate-700">
+              <span class="text-xs text-slate-400 shrink-0 dark:text-slate-500">登場:</span>
 
               <!-- キャラアイコン(クリックでポップアップ) -->
               <div
@@ -1028,7 +1028,7 @@ function isLastChapter(chapter: Chapter): boolean {
                 <!-- 吹き出しポップアップ(開いているのは1つだけ) -->
                 <div
                   v-if="openPopoverId === link.id"
-                  class="absolute z-10 top-10 left-0 w-64 bg-white border border-slate-200 rounded-lg shadow-lg p-3"
+                  class="absolute z-10 top-10 left-0 w-64 bg-white border border-slate-200 rounded-lg shadow-lg p-3 dark:bg-slate-800 dark:border-slate-700"
                 >
                   <div class="flex items-center justify-between mb-1">
                     <span class="font-medium text-sm truncate">
@@ -1036,27 +1036,27 @@ function isLastChapter(chapter: Chapter): boolean {
                     </span>
                     <button
                       type="button"
-                      class="text-slate-400 hover:text-slate-600 leading-none shrink-0"
+                      class="text-slate-400 hover:text-slate-600 leading-none shrink-0 dark:text-slate-500 dark:hover:text-slate-300"
                       @click="closePopover"
                     >
                       ×
                     </button>
                   </div>
-                  <p v-if="link.intent" class="text-xs text-slate-600 whitespace-pre-wrap mb-2">
+                  <p v-if="link.intent" class="text-xs text-slate-600 whitespace-pre-wrap mb-2 dark:text-slate-300">
                     {{ link.intent }}
                   </p>
-                  <p v-else class="text-xs text-slate-400 italic mb-2">行動は未記入です</p>
+                  <p v-else class="text-xs text-slate-400 italic mb-2 dark:text-slate-500">行動は未記入です</p>
                   <div class="flex justify-end gap-1">
                     <button
                       type="button"
-                      class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                      class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
                       @click="closePopover(); openSceneCharacterManager(scene)"
                     >
                       編集
                     </button>
                     <button
                       type="button"
-                      class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
                       @click="handleUnlinkSceneCharacter(link)"
                     >
                       解除
@@ -1068,7 +1068,7 @@ function isLastChapter(chapter: Chapter): boolean {
               <!-- キャラ追加ボタン -->
               <button
                 type="button"
-                class="w-8 h-8 rounded-full border border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 transition-colors text-sm"
+                class="w-8 h-8 rounded-full border border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 transition-colors text-sm dark:border-slate-600 dark:text-slate-500 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
                 title="登場キャラを追加"
                 @click="openSceneCharacterManager(scene)"
               >
@@ -1102,7 +1102,7 @@ function isLastChapter(chapter: Chapter): boolean {
             class="px-3 py-1 text-sm rounded-md transition-colors"
             :class="statusFilter === 'all'
               ? 'bg-slate-800 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
             @click="statusFilter = 'all'"
           >
             全て ({{ statusCounts.all }})
@@ -1114,7 +1114,7 @@ function isLastChapter(chapter: Chapter): boolean {
             class="px-3 py-1 text-sm rounded-md transition-colors"
             :class="statusFilter === status
               ? 'bg-slate-800 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
             @click="statusFilter = status"
           >
             {{ FORESHADOW_STATUS_LABELS[status] }} ({{ statusCounts[status] }})
@@ -1131,7 +1131,7 @@ function isLastChapter(chapter: Chapter): boolean {
         <!-- 伏線読み込み中 -->
         <div
           v-if="isForeshadowsLoading"
-          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
         >
           読み込み中...
         </div>
@@ -1139,16 +1139,16 @@ function isLastChapter(chapter: Chapter): boolean {
         <!-- 伏線が0件の時 -->
         <div
           v-else-if="foreshadows.length === 0"
-          class="bg-white rounded-lg border border-slate-200 p-8 text-center"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center dark:bg-slate-800 dark:border-slate-700"
         >
-          <p class="text-slate-600 mb-2">まだ伏線が登録されていません</p>
-          <p class="text-sm text-slate-500">右上の「+ 新規伏線」から追加してください</p>
+          <p class="text-slate-600 mb-2 dark:text-slate-300">まだ伏線が登録されていません</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400">右上の「+ 新規伏線」から追加してください</p>
         </div>
 
         <!-- フィルタ結果が0件の時 -->
         <div
           v-else-if="filteredForeshadows.length === 0"
-          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
         >
           このステータスの伏線はありません
         </div>
@@ -1158,7 +1158,7 @@ function isLastChapter(chapter: Chapter): boolean {
           <article
             v-for="foreshadow in filteredForeshadows"
             :key="foreshadow.id"
-            class="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-shadow"
+            class="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700"
           >
             <!-- タイトル + ステータスバッジ + ボタン -->
             <div class="flex items-start justify-between gap-2 mb-2">
@@ -1174,14 +1174,14 @@ function isLastChapter(chapter: Chapter): boolean {
               <div class="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
-                  class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                  class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
                   @click="openEditForeshadowDialog(foreshadow)"
                 >
                   編集
                 </button>
                 <button
                   type="button"
-                  class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
                   @click="handleDeleteForeshadow(foreshadow)"
                 >
                   削除
@@ -1192,19 +1192,19 @@ function isLastChapter(chapter: Chapter): boolean {
             <!-- 説明 -->
             <p
               v-if="foreshadow.description"
-              class="text-sm text-slate-600 whitespace-pre-wrap mb-3"
+              class="text-sm text-slate-600 whitespace-pre-wrap mb-3 dark:text-slate-300"
             >
               {{ foreshadow.description }}
             </p>
 
             <!-- シーン紐付け情報 -->
-            <div class="space-y-1 pt-2 border-t border-slate-100 text-xs">
-              <p class="text-slate-600">
-                <span class="text-slate-400">張ったシーン:</span>
+            <div class="space-y-1 pt-2 border-t border-slate-100 text-xs dark:border-slate-700">
+              <p class="text-slate-600 dark:text-slate-300">
+                <span class="text-slate-400 dark:text-slate-500">張ったシーン:</span>
                 {{ getSceneLabel(foreshadow.placedSceneId) }}
               </p>
-              <p class="text-slate-600">
-                <span class="text-slate-400">回収予定シーン:</span>
+              <p class="text-slate-600 dark:text-slate-300">
+                <span class="text-slate-400 dark:text-slate-500">回収予定シーン:</span>
                 {{ getSceneLabel(foreshadow.resolvedSceneId) }}
               </p>
             </div>
@@ -1228,7 +1228,7 @@ function isLastChapter(chapter: Chapter): boolean {
   <!-- キャラ読み込み中 -->
   <div
     v-if="isCharactersLoading"
-    class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+    class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
   >
     読み込み中...
   </div>
@@ -1236,10 +1236,10 @@ function isLastChapter(chapter: Chapter): boolean {
   <!-- キャラが0件の時 -->
   <div
     v-else-if="characters.length === 0"
-    class="bg-white rounded-lg border border-slate-200 p-8 text-center"
+    class="bg-white rounded-lg border border-slate-200 p-8 text-center dark:bg-slate-800 dark:border-slate-700"
   >
-    <p class="text-slate-600 mb-2">まだキャラクターが登録されていません</p>
-    <p class="text-sm text-slate-500">右上の「+ 新規キャラ」から追加してください</p>
+    <p class="text-slate-600 mb-2 dark:text-slate-300">まだキャラクターが登録されていません</p>
+    <p class="text-sm text-slate-500 dark:text-slate-400">右上の「+ 新規キャラ」から追加してください</p>
   </div>
 
   <!-- キャラクターカード一覧 -->
@@ -1247,7 +1247,7 @@ function isLastChapter(chapter: Chapter): boolean {
     <article
       v-for="character in characters"
       :key="character.id"
-      class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+      class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:hover:border-blue-700"
       @click="goToCharacterDetail(character)"
     >
       <!-- アバター + 名前 + ボタン -->
@@ -1268,14 +1268,14 @@ function isLastChapter(chapter: Chapter): boolean {
         <div class="flex items-center gap-1 shrink-0" @click.stop>
           <button
             type="button"
-            class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+            class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
             @click.stop="openEditCharacterDialog(character)"
           >
             編集
           </button>
           <button
             type="button"
-            class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
             @click.stop="handleDeleteCharacter(character)"
           >
             削除
@@ -1293,14 +1293,14 @@ function isLastChapter(chapter: Chapter): boolean {
           :key="field.id"
           class="flex gap-3"
         >
-          <dt class="text-slate-400 shrink-0">{{ field.name || '(項目名未設定)' }}:</dt>
-          <dd class="text-slate-700 whitespace-pre-wrap flex-1">
+          <dt class="text-slate-400 shrink-0 dark:text-slate-500">{{ field.name || '(項目名未設定)' }}:</dt>
+          <dd class="text-slate-700 whitespace-pre-wrap flex-1 dark:text-slate-300">
             {{ field.value || '—' }}
           </dd>
         </div>
       </dl>
 
-      <p v-else class="text-sm text-slate-500">
+      <p v-else class="text-sm text-slate-500 dark:text-slate-400">
         まだ詳細が記載されていません。
       </p>
     </article>

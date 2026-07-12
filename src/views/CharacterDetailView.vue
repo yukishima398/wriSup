@@ -154,19 +154,19 @@ function goBackToWork() {
     <!-- 戻るボタン -->
     <button
       type="button"
-      class="text-sm text-slate-600 hover:bg-slate-100 rounded-md px-3 py-1 mb-4 inline-flex items-center gap-1 transition-colors"
+      class="text-sm text-slate-600 hover:bg-slate-100 rounded-md px-3 py-1 mb-4 inline-flex items-center gap-1 transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
       @click="goBackToWork"
     >
       ← 作品「{{ work?.title || '...' }}」に戻る
     </button>
 
     <!-- ローディング中 -->
-    <div v-if="isLoading" class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
+    <div v-if="isLoading" class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
       読み込み中...
     </div>
 
     <!-- エラー時 -->
-    <div v-else-if="error" class="bg-red-50 rounded-lg border border-red-200 p-8 text-red-700">
+    <div v-else-if="error" class="bg-red-50 rounded-lg border border-red-200 p-8 text-red-700 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400">
       <p class="font-semibold">エラーが発生しました</p>
       <p class="text-sm mt-1">{{ error }}</p>
     </div>
@@ -174,7 +174,7 @@ function goBackToWork() {
     <!-- キャラ情報 -->
     <div v-else-if="character">
         <!-- 名前 -->
-        <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
+        <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6 dark:bg-slate-800 dark:border-slate-700">
           <div class="flex items-center gap-4 flex-1">
             <CharacterAvatar
               :name="character.name"
@@ -186,14 +186,14 @@ function goBackToWork() {
               <div class="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
-                  class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                  class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
                   @click="openEditDialog"
                 >
                   編集
                 </button>
                 <button
                   type="button"
-                  class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
                   @click="handleDeleteCharacter"
                 >
                   削除
@@ -207,22 +207,22 @@ function goBackToWork() {
         <h3 class="text-lg font-semibold mb-3">Profile</h3>
         <div
           v-if="character.customFields.length === 0"
-          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
         >
           まだ詳細が登録されていません。
         </div>
 
-        <div v-else class="bg-white rounded-lg border border-slate-200 p-6">
+        <div v-else class="bg-white rounded-lg border border-slate-200 p-6 dark:bg-slate-800 dark:border-slate-700">
           <dl class="space-y-3">
             <div
               v-for="field in character.customFields"
               :key="field.id"
-              class="flex flex-col sm:flex-row sm:gap-4 pb-3 border-b border-slate-100 last:border-b-0 last:pb-0"
+              class="flex flex-col sm:flex-row sm:gap-4 pb-3 border-b border-slate-100 last:border-b-0 last:pb-0 dark:border-slate-700"
             >
-              <dt class="text-sm font-medium text-slate-500 sm:w-32 sm:shrink-0">
+              <dt class="text-sm font-medium text-slate-500 sm:w-32 sm:shrink-0 dark:text-slate-400">
                 {{ field.name || '(項目名未設定)' }}
               </dt>
-              <dd class="text-slate-700 whitespace-pre-wrap flex-1">
+              <dd class="text-slate-700 whitespace-pre-wrap flex-1 dark:text-slate-300">
                 {{ field.value || '—' }}
               </dd>
             </div>
@@ -237,7 +237,7 @@ function goBackToWork() {
 
               <div
                 v-if="appearances.length === 0"
-                class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+                class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
               >
                 まだどのシーンにも登場していません。<br />
                 作品詳細ページのシーンカードにある「+」から紐付けできます。
@@ -247,27 +247,27 @@ function goBackToWork() {
                 <div
                   v-for="{ scene, link } in appearances"
                   :key="link.id"
-                  class="bg-white rounded-lg border border-slate-200 p-4"
+                  class="bg-white rounded-lg border border-slate-200 p-4 dark:bg-slate-800 dark:border-slate-700"
                 >
                   <!-- シーン情報の行 -->
                   <div class="flex items-baseline gap-2 mb-1 flex-wrap">
-                    <span class="text-sm font-semibold text-slate-400 shrink-0">
+                    <span class="text-sm font-semibold text-slate-400 shrink-0 dark:text-slate-500">
                       #{{ scene.order }}
                     </span>
                     <span class="font-medium truncate">{{ scene.title || '無題' }}</span>
                     <span
                       v-if="scene.worldDateTime"
-                      class="text-xs text-slate-500 bg-slate-100 rounded px-2 py-0.5 shrink-0"
+                      class="text-xs text-slate-500 bg-slate-100 rounded px-2 py-0.5 shrink-0 dark:bg-slate-700 dark:text-slate-400"
                     >
                       {{ scene.worldDateTime }}
                     </span>
                   </div>
 
                   <!-- このシーンでの行動 -->
-                  <p v-if="link.intent" class="text-sm text-slate-700 whitespace-pre-wrap">
+                  <p v-if="link.intent" class="text-sm text-slate-700 whitespace-pre-wrap dark:text-slate-300">
                     {{ link.intent }}
                   </p>
-                  <p v-else class="text-sm text-slate-400 italic">行動は未記入です</p>
+                  <p v-else class="text-sm text-slate-400 italic dark:text-slate-500">行動は未記入です</p>
                 </div>
               </div>
             </section>

@@ -61,7 +61,7 @@ export const FORESHADOW_STATUS_LABELS: Record<ForeshadowStatus, string> = {
  * ステータスの表示用カラー(Tailwind クラス)
  */
 export const FORESHADOW_STATUS_COLORS: Record<ForeshadowStatus, string> = {
-  planned: 'bg-slate-100 text-slate-700',
-  placed: 'bg-blue-100 text-blue-700',
-  resolved: 'bg-green-100 text-green-700',
+  planned: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
+  placed: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+  resolved: 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300',
 }

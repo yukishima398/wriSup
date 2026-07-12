@@ -192,16 +192,16 @@ function handleCancel() {
   <!-- モーダル背景 overflow-y-autoでモーダルの外側をスクロール可能に。小さい画面用 -->
   <div
     v-if="isOpen"
-    class="fixed inset-0 bg-black/50 flex z-50 p-4 items-center justify-center"
+    class="fixed inset-0 bg-black/50 flex z-50 p-4 items-center justify-center dark:bg-black/70"
   >
     <!-- モーダル本体 -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col dark:bg-slate-800">
       <!-- ヘッダー sticky top-0 / sticky bottom-0:ヘッダーとフッターを固定-->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0 dark:border-slate-700">
         <h3 class="text-lg font-semibold">{{ dialogTitle }}</h3>
         <button
           type="button"
-          class="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+          class="text-slate-400 hover:text-slate-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300"
           @click="handleCancel"
         >
           ×
@@ -212,25 +212,25 @@ function handleCancel() {
       <div class="px-6 py-4 space-y-4 flex-1 overflow-y-auto">
         <!-- タイトル placeholderで入力欄を書いておく -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
-            タイトル <span class="text-red-500">*</span>
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+            タイトル <span class="text-red-500 dark:text-red-400">*</span>
           </label>
           <input
             v-model="title"
             type="text"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="例:主人公、覚醒する"
           />
         </div>
 
         <!-- 章 -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             章
           </label>
           <select
             v-model="chapterId"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600"
           >
             <option :value="undefined">未分類</option>
             <option v-for="chapter in chapters" :key="chapter.id" :value="chapter.id">
@@ -241,16 +241,16 @@ function handleCancel() {
 
         <!-- 時系列 -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             🕐時系列(作品世界の日時)
           </label>
           <input
             v-model="worldDateTime"
             type="text"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="例:3月15日 14:00"
           />
-          <p class="text-xs text-slate-500 mt-1">
+          <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">
             「帝国暦2000/1/1」など、時系列を整理する必要がある場合
           </p>
         </div>
@@ -258,15 +258,15 @@ function handleCancel() {
         <!-- あらすじ -->
         <div>
           <div class="flex items-baseline justify-between mb-1">
-            <label class="block text-sm font-medium text-slate-700">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
               ストーリー
             </label>
-            <span class="text-xs text-slate-400">{{ summary.length }}文字</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500">{{ summary.length }}文字</span>
           </div>
           <textarea
             v-model="summary"
             rows="4"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="このシーンで起きることの要約"
           ></textarea>
 
@@ -274,31 +274,31 @@ function handleCancel() {
           <div class="mt-1">
             <button
               type="button"
-              class="text-xs text-slate-500 hover:text-slate-700 transition-colors"
+              class="text-xs text-slate-500 hover:text-slate-700 transition-colors dark:text-slate-400"
               @click="isHistoryOpen = !isHistoryOpen"
             >
               履歴({{ summaryHistory.length }}件) {{ isHistoryOpen ? '▲' : '▼' }}
             </button>
             <div
               v-if="isHistoryOpen"
-              class="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-md bg-slate-50 divide-y divide-slate-200"
+              class="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-md bg-slate-50 divide-y divide-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:divide-slate-700"
             >
               <p
                 v-if="summaryHistory.length === 0"
-                class="text-xs text-slate-400 italic p-2"
+                class="text-xs text-slate-400 italic p-2 dark:text-slate-500"
               >
-                まだ履歴がありません(数秒入力を止めると記録されます)
+                まだ履歴がありません(数秒手を止めると自動保存されます)
               </p>
               <button
                 v-for="entry in [...summaryHistory].reverse()"
                 :key="entry.savedAt.getTime()"
                 type="button"
-                class="w-full text-left px-2 py-1.5 hover:bg-white transition-colors"
+                class="w-full text-left px-2 py-1.5 hover:bg-white dark:hover:bg-slate-700 transition-colors"
                 title="クリックしてこの内容に戻す"
                 @click="restoreHistoryEntry(entry)"
               >
-                <span class="text-xs text-slate-400">{{ formatHistoryTime(entry.savedAt) }}</span>
-                <span class="block text-xs text-slate-600 truncate">{{ entry.value }}</span>
+                <span class="text-xs text-slate-400 dark:text-slate-500">{{ formatHistoryTime(entry.savedAt) }}</span>
+                <span class="block text-xs text-slate-600 truncate dark:text-slate-300">{{ entry.value }}</span>
               </button>
             </div>
           </div>
@@ -306,29 +306,26 @@ function handleCancel() {
 
         <!-- 世界状態 -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             🌐 作品世界の趨勢など
           </label>
           <textarea
             v-model="worldState"
             rows="2"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="このシーン終了時点での世界の状態(例:帝国が侵攻開始、人類のx％が死亡)"
           ></textarea>
-          <p class="text-xs text-slate-500 mt-1">
-            プロットの矛盾を防ぐためのメモ
-          </p>
         </div>
 
         <!-- TODO -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             📌 TODO
           </label>
           <textarea
             v-model="todoNotes"
             rows="2"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="後で詰める箇所のメモ(例:[TODO: キャラAの動機を再考])"
           ></textarea>
         </div>
@@ -345,19 +342,19 @@ function handleCancel() {
                 v-if="editingFieldId === field.id"
                 v-model="field.name"
                 type="text"
-                class="flex-1 min-w-0 text-sm font-medium text-slate-700 px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                class="flex-1 min-w-0 text-sm font-medium text-slate-700 px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300"
                 placeholder="項目名(例:視点キャラ、使用した伏線)"
                 @keyup.enter="editingFieldId = null"
                 @blur="editingFieldId = null"
               />
-              <label v-else class="text-sm font-medium text-slate-700 truncate">
+              <label v-else class="text-sm font-medium text-slate-700 truncate dark:text-slate-300">
                 {{ field.name || '項目名未設定' }}
               </label>
               <div class="flex items-center gap-1 shrink-0">
                 <button
                   v-if="editingFieldId !== field.id"
                   type="button"
-                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors"
+                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors dark:text-slate-300"
                   title="項目名を編集"
                   @click="editingFieldId = field.id"
                 >
@@ -365,7 +362,7 @@ function handleCancel() {
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300"
                   :disabled="index === 0"
                   title="上に移動"
                   @click="moveFieldUp(index)"
@@ -374,7 +371,7 @@ function handleCancel() {
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300"
                   :disabled="index === customFields.length - 1"
                   title="下に移動"
                   @click="moveFieldDown(index)"
@@ -383,7 +380,7 @@ function handleCancel() {
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
                   @click="removeField(field.id)"
                 >
                   削除
@@ -393,7 +390,7 @@ function handleCancel() {
             <textarea
               v-model="field.value"
               rows="2"
-              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
               placeholder="値を入力..."
             ></textarea>
           </div>
@@ -402,7 +399,7 @@ function handleCancel() {
         <!-- 項目追加ボタン -->
         <button
           type="button"
-          class="w-full px-3 py-2 text-sm text-emerald-700 border border-dashed border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors"
+          class="w-full px-3 py-2 text-sm text-emerald-700 border border-dashed border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
           @click="addField"
         >
           + 項目を追加
@@ -410,10 +407,10 @@ function handleCancel() {
       </div>
 
       <!-- フッター -->
-      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg">
+      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg dark:bg-slate-800 dark:border-slate-700">
         <button
           type="button"
-          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
           @click="handleCancel"
         >
           キャンセル

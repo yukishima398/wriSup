@@ -131,16 +131,16 @@ function handleCancel() {
   <!-- モーダル背景 -->
   <div
     v-if="isOpen"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 dark:bg-black/70"
   >
     <!-- モーダル本体 -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col dark:bg-slate-800">
       <!-- ヘッダー -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 rounded-t-lg shrink-0 dark:border-slate-700">
         <h3 class="text-lg font-semibold">{{ dialogTitle }}</h3>
         <button
           type="button"
-          class="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+          class="text-slate-400 hover:text-slate-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300"
           @click="handleCancel"
         >
           ×
@@ -151,24 +151,24 @@ function handleCancel() {
       <div class="px-6 py-4 space-y-4 flex-1 overflow-y-auto">
         <!-- 名前 -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
-            名前 <span class="text-red-500">*</span>
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+            名前 <span class="text-red-500 dark:text-red-400">*</span>
           </label>
           <input
             v-model="name"
             type="text"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="名前を入力..."
           />
         </div>
 
         <!-- プロフィール画像 -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-2">
+          <label class="block text-sm font-medium text-slate-700 mb-2 dark:text-slate-300">
             プロフィール画像
           </label>
 
-          <div class="flex items-center gap-4 p-3 bg-slate-50 border border-slate-200 rounded-md">
+          <div class="flex items-center gap-4 p-3 bg-slate-50 border border-slate-200 rounded-md dark:bg-slate-900 dark:border-slate-700">
             <!-- プレビュー -->
             <CharacterAvatar
               :name="name || 'キャラ'"
@@ -180,7 +180,7 @@ function handleCancel() {
             <div class="flex flex-col gap-2 flex-1 min-w-0">
               <!-- ファイル選択 -->
               <label
-                class="inline-flex items-center justify-center px-3 py-1.5 text-sm bg-white border border-slate-300 rounded-md cursor-pointer hover:bg-slate-100 transition-colors"
+                class="inline-flex items-center justify-center px-3 py-1.5 text-sm bg-white border border-slate-300 rounded-md cursor-pointer hover:bg-slate-100 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700"
                 :class="{ 'opacity-50 cursor-not-allowed': isProcessingImage }"
               >
                 <input
@@ -197,14 +197,14 @@ function handleCancel() {
               <button
                 v-if="photo"
                 type="button"
-                class="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                class="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
                 @click="removeImage"
               >
                 画像を削除
               </button>
 
               <!-- 説明 -->
-              <p class="text-xs text-slate-500">
+              <p class="text-xs text-slate-500 dark:text-slate-400">
                 128x128 px に圧縮されます
               </p>
             </div>
@@ -213,14 +213,14 @@ function handleCancel() {
 
         <!-- 可変フィールド -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-2">
+          <label class="block text-sm font-medium text-slate-700 mb-2 dark:text-slate-300">
             詳細項目
           </label>
 
           <!-- フィールドが0件の時 -->
           <p
             v-if="customFields.length === 0"
-            class="text-sm text-slate-500 mb-3 italic"
+            class="text-sm text-slate-500 mb-3 italic dark:text-slate-400"
           >
             まだ項目がありません。「+ 項目を追加」で項目を作成できます。
           </p>
@@ -230,30 +230,30 @@ function handleCancel() {
             <div
               v-for="(field, index) in customFields"
               :key="field.id"
-              class="border border-slate-200 rounded-md p-3 bg-slate-50"
+              class="border border-slate-200 rounded-md p-3 bg-slate-50 dark:bg-slate-900 dark:border-slate-700"
             >
               <!-- 項目名 -->
               <div class="mb-2">
-                <label class="block text-xs font-medium text-slate-600 mb-1">
+                <label class="block text-xs font-medium text-slate-600 mb-1 dark:text-slate-300">
                   項目名
                 </label>
                 <input
                   v-model="field.name"
                   type="text"
-                  class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600"
                   placeholder="例:年齢、性格、好物"
                 />
               </div>
 
               <!-- 値 -->
               <div class="mb-2">
-                <label class="block text-xs font-medium text-slate-600 mb-1">
+                <label class="block text-xs font-medium text-slate-600 mb-1 dark:text-slate-300">
                   値
                 </label>
                 <textarea
                   v-model="field.value"
                   rows="2"
-                  class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600"
                   placeholder="例:18 / 皮肉屋、内心は誠実"
                 ></textarea>
               </div>
@@ -262,7 +262,7 @@ function handleCancel() {
               <div class="flex justify-end gap-1">
                 <button
                   type="button"
-                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300"
                   :disabled="index === 0"
                   title="上に移動"
                   @click="moveFieldUp(index)"
@@ -271,7 +271,7 @@ function handleCancel() {
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300"
                   :disabled="index === customFields.length - 1"
                   title="下に移動"
                   @click="moveFieldDown(index)"
@@ -280,7 +280,7 @@ function handleCancel() {
                 </button>
                 <button
                   type="button"
-                  class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
                   @click="removeField(field.id)"
                 >
                   削除
@@ -292,7 +292,7 @@ function handleCancel() {
           <!-- 項目追加ボタン -->
           <button
             type="button"
-            class="w-full px-3 py-2 text-sm text-emerald-700 border border-dashed border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors"
+            class="w-full px-3 py-2 text-sm text-emerald-700 border border-dashed border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
             @click="addField"
           >
             + 項目を追加
@@ -301,10 +301,10 @@ function handleCancel() {
       </div>
 
       <!-- フッター -->
-      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg">
+      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg dark:bg-slate-800 dark:border-slate-700">
         <button
           type="button"
-          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
           @click="handleCancel"
         >
           キャンセル

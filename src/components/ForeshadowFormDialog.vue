@@ -97,16 +97,16 @@ function handleCancel() {
   <!-- モーダル背景 -->
   <div
     v-if="isOpen"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 dark:bg-black/70"
   >
     <!-- モーダル本体 -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col dark:bg-slate-800">
       <!-- ヘッダー -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 top-0 bg-white rounded-t-lg shrink-0">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 top-0 bg-white rounded-t-lg shrink-0 dark:bg-slate-800 dark:border-slate-700">
         <h3 class="text-lg font-semibold">{{ dialogTitle }}</h3>
         <button
           type="button"
-          class="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+          class="text-slate-400 hover:text-slate-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300"
           @click="handleCancel"
         >
           ×
@@ -117,34 +117,34 @@ function handleCancel() {
       <div class="px-6 py-4 space-y-4 flex-1 overflow-y-auto">
         <!-- タイトル -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
-            タイトル <span class="text-red-500">*</span>
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+            タイトル <span class="text-red-500 dark:text-red-400">*</span>
           </label>
           <input
             v-model="title"
             type="text"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="例:主人公の左腕の傷"
           />
         </div>
 
         <!-- 説明 -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             説明
           </label>
           <textarea
             v-model="description"
             rows="3"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
             placeholder="伏線の詳細、関連するキャラや出来事のメモ"
           ></textarea>
         </div>
 
         <!-- ステータス -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-2">
-            ステータス <span class="text-red-500">*</span>
+          <label class="block text-sm font-medium text-slate-700 mb-2 dark:text-slate-300">
+            ステータス <span class="text-red-500 dark:text-red-400">*</span>
           </label>
           <div class="grid grid-cols-3 gap-2">
             <button
@@ -154,67 +154,67 @@ function handleCancel() {
               class="px-3 py-2 text-sm rounded-md transition-all border-2"
               :class="status === s
                 ? FORESHADOW_STATUS_COLORS[s] + ' border-current font-medium'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'"
               @click="status = s"
             >
               {{ FORESHADOW_STATUS_LABELS[s] }}
             </button>
           </div>
-          <p class="text-xs text-slate-500 mt-2">{{ statusHint }}</p>
+          <p class="text-xs text-slate-500 mt-2 dark:text-slate-400">{{ statusHint }}</p>
         </div>
 
         <!-- シーンが0件の場合の注意 -->
         <div
           v-if="scenes.length === 0"
-          class="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-800"
+          class="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-800 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300"
         >
           ⚠️ このシーンの作品にはまだシーンが登録されていません。シーン紐付けは後から編集できます
         </div>
 
         <!-- 張ったシーン -->
         <div v-if="scenes.length > 0">
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             張ったシーン
           </label>
           <select
             v-model="placedSceneId"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600"
           >
             <option :value="undefined">未設定</option>
             <option v-for="scene in scenes" :key="scene.id" :value="scene.id">
               #{{ scene.order }} {{ scene.title || '無題' }}
             </option>
           </select>
-          <p class="text-xs text-slate-500 mt-1">
+          <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">
             この伏線が実際に書かれる(または書かれた)シーン
           </p>
         </div>
 
         <!-- 回収予定/回収済みシーン -->
         <div v-if="scenes.length > 0">
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
             回収予定/回収済みシーン
           </label>
           <select
             v-model="resolvedSceneId"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 dark:border-slate-600"
           >
             <option :value="undefined">未設定</option>
             <option v-for="scene in scenes" :key="scene.id" :value="scene.id">
               #{{ scene.order }} {{ scene.title || '無題' }}
             </option>
           </select>
-          <p class="text-xs text-slate-500 mt-1">
+          <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">
             この伏線が回収される(または回収された)シーン
           </p>
         </div>
       </div>
 
       <!-- フッター -->
-      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg">
+      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 sticky bottom-0 bg-white rounded-b-lg dark:bg-slate-800 dark:border-slate-700">
         <button
           type="button"
-          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+          class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
           @click="handleCancel"
         >
           キャンセル

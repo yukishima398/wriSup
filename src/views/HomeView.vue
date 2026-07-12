@@ -108,25 +108,25 @@ function goToDetail(work: Work) {
       </button>
     </div>
 
-    <div v-if="isLoading" class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500">
+    <div v-if="isLoading" class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
       読み込み中...
     </div>
 
-    <div v-else-if="error" class="bg-red-50 rounded-lg border border-red-200 p-8 text-red-700">
+    <div v-else-if="error" class="bg-red-50 rounded-lg border border-red-200 p-8 text-red-700 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400">
       <p class="font-semibold">エラーが発生しました</p>
       <p class="text-sm mt-1">{{ error }}</p>
     </div>
 
-    <div v-else-if="works.length === 0" class="bg-white rounded-lg border border-slate-200 p-8 text-center">
-      <p class="text-slate-600 mb-2">まだ作品が登録されていません</p>
-      <p class="text-sm text-slate-500">右上の「+ 新規作品」から作品を追加してください</p>
+    <div v-else-if="works.length === 0" class="bg-white rounded-lg border border-slate-200 p-8 text-center dark:bg-slate-800 dark:border-slate-700">
+      <p class="text-slate-600 mb-2 dark:text-slate-300">まだ作品が登録されていません</p>
+      <p class="text-sm text-slate-500 dark:text-slate-400">右上の「+ 新規作品」から作品を追加してください</p>
     </div>
 
     <div v-else class="space-y-4">
       <article
         v-for="work in works"
         :key="work.id"
-        class="bg-white rounded-lg border border-slate-200 p-6 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+        class="bg-white rounded-lg border border-slate-200 p-6 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:hover:border-blue-700"
         @click="goToDetail(work)"
       >
         <div class="flex items-start justify-between gap-2 mb-2">
@@ -134,14 +134,14 @@ function goToDetail(work: Work) {
           <div class="flex items-center gap-1 shrink-0" @click.stop>
             <button
               type="button"
-              class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+              class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
               @click="openEditDialog(work)"
             >
               編集
             </button>
             <button
               type="button"
-              class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
               @click="handleDelete(work)"
             >
               削除
@@ -150,13 +150,13 @@ function goToDetail(work: Work) {
         </div>
 
         <div class="space-y-1 text-sm">
-          <p class="text-slate-600">
-            <span class="text-slate-400">ゴール:</span>{{ work.goal || '未設定' }}
+          <p class="text-slate-600 dark:text-slate-300">
+            <span class="text-slate-400 dark:text-slate-500">ゴール:</span>{{ work.goal || '未設定' }}
           </p>
-          <p class="text-slate-600">
-            <span class="text-slate-400">テーマ:</span>{{ work.theme || '未設定' }}
+          <p class="text-slate-600 dark:text-slate-300">
+            <span class="text-slate-400 dark:text-slate-500">テーマ:</span>{{ work.theme || '未設定' }}
           </p>
-          <p class="text-slate-400 text-xs mt-2">
+          <p class="text-slate-400 text-xs mt-2 dark:text-slate-500">
             作成日:{{ formatDate(work.createdAt) }}
           </p>
         </div>
