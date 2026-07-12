@@ -122,20 +122,20 @@ async function handleAdd() {
   }
 }
 
-// 思惑の編集を開始(該当行を textarea に切り替える)
+// 行動の編集を開始(該当行を textarea に切り替える)
 function startEdit(link: SceneCharacter) {
   if (link.id === undefined) return
   editingId.value = link.id
   editingIntent.value = link.intent
 }
 
-// 思惑の編集をキャンセル
+// 行動の編集をキャンセル
 function cancelEdit() {
   editingId.value = null
   editingIntent.value = ''
 }
 
-// 思惑を保存
+// 行動を保存
 async function saveIntent() {
   if (editingId.value === null) return
 
@@ -161,7 +161,7 @@ async function handleUnlink(link: SceneCharacter) {
 
   const character = characterById.value.get(link.characterId)
   const confirmed = window.confirm(
-    `「${character?.name ?? '不明なキャラ'}」の紐付けを解除しますか?\n思惑の記録も削除されます`
+    `「${character?.name ?? '不明なキャラ'}」の紐付けを解除しますか?\n行動の記録も削除されます`
   )
   if (!confirmed) return
 
@@ -247,7 +247,7 @@ function handleClose() {
                   class="px-2 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-md transition-colors shrink-0"
                   @click="startEdit(link)"
                 >
-                  思惑を編集
+                  行動を編集
                 </button>
                 <button
                   type="button"
@@ -259,13 +259,13 @@ function handleClose() {
                 </button>
               </div>
 
-              <!-- 思惑:編集中なら textarea、それ以外は表示のみ -->
+              <!-- 行動:編集中なら textarea、それ以外は表示のみ -->
               <div v-if="editingId === link.id">
                 <textarea
                   v-model="editingIntent"
                   rows="3"
                   class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  placeholder="このシーンでのこのキャラの思惑・狙い・内心など"
+                  placeholder="このシーンでのこのキャラの行動・狙い・内心など"
                 ></textarea>
                 <div class="flex justify-end gap-1 mt-1">
                   <button
@@ -277,7 +277,7 @@ function handleClose() {
                   </button>
                   <button
                     type="button"
-                    class="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    class="px-3 py-1 text-xs bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:opacity-50"
                     :disabled="isSaving"
                     @click="saveIntent"
                   >
@@ -292,7 +292,7 @@ function handleClose() {
                 {{ link.intent }}
               </p>
               <p v-else class="text-xs text-slate-400 italic pl-11">
-                思惑は未記入です
+                行動は未記入です
               </p>
             </div>
           </div>
@@ -330,11 +330,11 @@ function handleClose() {
               v-model="newIntent"
               rows="2"
               class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="思惑(あとから編集できます)"
+              placeholder="行動(あとから編集できます)"
             ></textarea>
             <button
               type="button"
-              class="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+              class="w-full px-3 py-2 text-sm bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:opacity-50"
               :disabled="isSaving"
               @click="handleAdd"
             >

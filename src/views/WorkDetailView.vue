@@ -7,8 +7,7 @@ import {
   createScene,
   updateScene,
   deleteScene,
-  moveSceneUp,
-  moveSceneDown,
+  swapSceneOrders,
 } from '@/repositories/sceneRepository'
 import {
   listForeshadowsByWork,
@@ -16,8 +15,17 @@ import {
   updateForeshadow,
   deleteForeshadow,
 } from '@/repositories/foreshadowRepository'
+import {
+  listChaptersByWork,
+  createChapter,
+  updateChapter,
+  deleteChapter,
+  moveChapterUp,
+  moveChapterDown,
+} from '@/repositories/chapterRepository'
 import type { Work } from '@/types/work'
 import type { Scene, SceneInput } from '@/types/scene'
+import type { Chapter, ChapterInput } from '@/types/chapter'
 import type {
   Foreshadow,
   ForeshadowStatus,
@@ -25,6 +33,7 @@ import type {
 } from '@/types/foreshadow'
 import SceneFormDialog from '@/components/SceneFormDialog.vue'
 import ForeshadowFormDialog from '@/components/ForeshadowFormDialog.vue'
+import ChapterFormDialog from '@/components/ChapterFormDialog.vue'
 import {
   FORESHADOW_STATUS_LABELS,
   FORESHADOW_STATUS_COLORS,
@@ -59,6 +68,10 @@ const workId = Number(route.params.id)
 const work = ref<Work | null>(null)
 const scenes = ref<Scene[]>([])
 const isLoading = ref(true)
+// 伏線・キャラ・章は本体(作品+シーン)と独立に読み込むためのローディング状態
+const isForeshadowsLoading = ref(true)
+const isCharactersLoading = ref(true)
+const isChaptersLoading = ref(true)
 const error = ref<string | null>(null)
 const isSceneDialogOpen = ref(false)
 // 編集対象のシーンか判別する　null なら新規作成モード
@@ -70,6 +83,14 @@ const statusFilter = ref<ForeshadowStatus | 'all'>('all')
 const isForeshadowDialogOpen = ref(false)
 // 編集対象の伏線　null なら新規作成モード
 const editingForeshadow = ref<Foreshadow | null>(null)
+// 章の状態
+const chapters = ref<Chapter[]>([])
+// シーン一覧を絞り込む章('all'=全て, 'unassigned'=未分類, number=その章のみ)
+const chapterFilter = ref<number | 'all' | 'unassigned'>('all')
+// 章ダイアログの状態
+const isChapterDialogOpen = ref(false)
+// 編集対象の章　null なら新規作成モード
+const editingChapter = ref<Chapter | null>(null)
 // キャラクターの状態
 const characters = ref<Character[]>([])
 // シーン×キャラ紐付けの一覧(作品全体)
@@ -135,20 +156,21 @@ async function handleDeleteForeshadow(foreshadow: Foreshadow) {
   }
 }
 
-// 作品とシーン、伏線を並列取得
+// 作品とシーンを取得(画面の本体表示に必要な最小限)
 async function fetchAll() {
-  try {
-    if (isNaN(workId)) {
-      error.value = '不正な作品IDです'
-      return
-    }
+  if (isNaN(workId)) {
+    error.value = '不正な作品IDです'
+    isLoading.value = false
+    isForeshadowsLoading.value = false
+    isCharactersLoading.value = false
+    isChaptersLoading.value = false
+    return
+  }
 
-    // 作品・シーン・伏線・キャラを並列で取得
-    const [workResult, scenesResult, foreshadowsResult, charactersResult] = await Promise.all([
+  try {
+    const [workResult, scenesResult] = await Promise.all([
       getWork(workId),
       listScenesByWork(workId),
-      listForeshadowsByWork(workId),
-      listCharactersByWork(workId),
     ])
 
     if (!workResult) {
@@ -158,15 +180,49 @@ async function fetchAll() {
 
     work.value = workResult
     scenes.value = scenesResult
-    foreshadows.value = foreshadowsResult
-    characters.value = charactersResult
-
-    // シーン取得後、sceneCharacters を一括取得
-    await refreshSceneCharacters()
   } catch (e) {
     error.value = e instanceof Error ? e.message : '読み込みに失敗しました'
+    isForeshadowsLoading.value = false
+    isCharactersLoading.value = false
+    isChaptersLoading.value = false
+    return
   } finally {
     isLoading.value = false
+  }
+
+  // 伏線・キャラ・章・シーン×キャラ紐付けは付随データなので、作品本体の表示後に並列で取得する
+  // (途中で失敗しても、表示済みの作品・シーンをエラー画面に巻き戻さない)
+  try {
+    const sceneIds = scenes.value
+      .map((s) => s.id)
+      .filter((id): id is number => id !== undefined)
+
+    const [foreshadowsResult, charactersResult, sceneCharactersResult, chaptersResult] = await Promise.all([
+      listForeshadowsByWork(workId),
+      listCharactersByWork(workId),
+      listSceneCharactersByWork(sceneIds),
+      listChaptersByWork(workId),
+    ])
+
+    foreshadows.value = foreshadowsResult
+    characters.value = charactersResult
+    sceneCharacters.value = sceneCharactersResult
+    chapters.value = chaptersResult
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '付随データの読み込みに失敗しました')
+  } finally {
+    isForeshadowsLoading.value = false
+    isCharactersLoading.value = false
+    isChaptersLoading.value = false
+  }
+}
+
+// 章一覧だけ再取得
+async function refreshChapters() {
+  try {
+    chapters.value = await listChaptersByWork(workId)
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '章の再読み込みに失敗しました')
   }
 }
 
@@ -439,6 +495,42 @@ function getSceneLabel(sceneId: number | undefined): string {
   return `#${scene.order} ${scene.title || '無題'}`
 }
 
+// 現在フィルタ中の章(数値を選んでいるときだけ値を持つ)
+const selectedChapter = computed(() => {
+  if (typeof chapterFilter.value !== 'number') return undefined
+  return chapters.value.find((c) => c.id === chapterFilter.value)
+})
+
+// 章フィルタを適用したシーン一覧(順序は scenes と同じ order 昇順を維持)
+const filteredScenes = computed(() => {
+  if (chapterFilter.value === 'all') {
+    return scenes.value
+  }
+  if (chapterFilter.value === 'unassigned') {
+    return scenes.value.filter((s) => s.chapterId === undefined)
+  }
+  return scenes.value.filter((s) => s.chapterId === chapterFilter.value)
+})
+
+// 章タブに出す件数(全て/未分類/各章)
+const chapterCounts = computed(() => {
+  const counts = new Map<number, number>()
+  let unassigned = 0
+  for (const scene of scenes.value) {
+    if (scene.chapterId === undefined) {
+      unassigned++
+    } else {
+      counts.set(scene.chapterId, (counts.get(scene.chapterId) ?? 0) + 1)
+    }
+  }
+  return { all: scenes.value.length, unassigned, byChapterId: counts }
+})
+
+// 「+ 新規シーン」を押したとき、特定の章に絞り込んでいればその章を初期選択する
+const defaultChapterIdForNewScene = computed(() =>
+  typeof chapterFilter.value === 'number' ? chapterFilter.value : undefined
+)
+
 onMounted(fetchAll)
 
 // 一覧に戻る
@@ -504,10 +596,17 @@ async function handleDeleteScene(scene: Scene) {
 }
 
 // シーンを1つ上に移動
+// 章フィルタ中は「表示中のリストでの隣」と入れ替えるので、章内での並び替えになる
 async function handleMoveUp(scene: Scene) {
   if (scene.id === undefined) return
+  const visible = filteredScenes.value
+  const index = visible.findIndex((s) => s.id === scene.id)
+  if (index <= 0) return
+  const above = visible[index - 1]
+  if (above.id === undefined) return
+
   try {
-    await moveSceneUp(scene.id)
+    await swapSceneOrders(scene.id, above.id)
     await refreshScenes()
   } catch (e) {
     alert(e instanceof Error ? e.message : '移動に失敗しました')
@@ -517,23 +616,124 @@ async function handleMoveUp(scene: Scene) {
 // シーンを1つ下に移動
 async function handleMoveDown(scene: Scene) {
   if (scene.id === undefined) return
+  const visible = filteredScenes.value
+  const index = visible.findIndex((s) => s.id === scene.id)
+  if (index === -1 || index >= visible.length - 1) return
+  const below = visible[index + 1]
+  if (below.id === undefined) return
+
   try {
-    await moveSceneDown(scene.id)
+    await swapSceneOrders(scene.id, below.id)
     await refreshScenes()
   } catch (e) {
     alert(e instanceof Error ? e.message : '移動に失敗しました')
   }
 }
 
-// 「これ以上上に動かせない」かどうか　渡されたシーンaがシーンたちの先頭か確認
-// オプショナルチュイニングを使っているので、scenes.valueが空配列の場合も安全にfalseを返す
+// 「これ以上上に動かせない」かどうか(章フィルタ中は表示中のリストの先頭かで判定)
 function isFirst(scene: Scene): boolean {
-  return scenes.value[0]?.id === scene.id
+  return filteredScenes.value[0]?.id === scene.id
 }
 
 // 「これ以上下に動かせない」かどうか
 function isLast(scene: Scene): boolean {
-  return scenes.value[scenes.value.length - 1]?.id === scene.id
+  return filteredScenes.value[filteredScenes.value.length - 1]?.id === scene.id
+}
+
+// 章フィルタを切り替える
+function selectChapterFilter(filter: number | 'all' | 'unassigned') {
+  chapterFilter.value = filter
+}
+
+// 新規章ダイアログを開く
+function openCreateChapterDialog() {
+  editingChapter.value = null
+  isChapterDialogOpen.value = true
+}
+
+// 編集章ダイアログを開く
+function openEditChapterDialog(chapter: Chapter) {
+  editingChapter.value = chapter
+  isChapterDialogOpen.value = true
+}
+
+// 章ダイアログを閉じる
+function closeChapterDialog() {
+  isChapterDialogOpen.value = false
+  editingChapter.value = null
+}
+
+// 章保存処理
+async function handleChapterSubmit(input: ChapterInput) {
+  try {
+    if (editingChapter.value && editingChapter.value.id !== undefined) {
+      // 編集モード
+      await updateChapter({
+        id: editingChapter.value.id,
+        ...input,
+      })
+    } else {
+      // 新規作成モード
+      await createChapter(input)
+    }
+    closeChapterDialog()
+    await refreshChapters()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '保存に失敗しました')
+  }
+}
+
+// 章削除処理(所属シーンは削除せず「未分類」に戻る)
+async function handleDeleteChapter(chapter: Chapter) {
+  if (chapter.id === undefined) return
+
+  const confirmed = window.confirm(
+    `章「${chapter.title}」を削除しますか?\n\nこの章に属するシーンは削除されず、「未分類」に戻ります　`
+  )
+  if (!confirmed) return
+
+  try {
+    await deleteChapter(chapter.id)
+    // この章を表示中だった場合は「全て」に戻す
+    if (chapterFilter.value === chapter.id) {
+      chapterFilter.value = 'all'
+    }
+    await Promise.all([refreshChapters(), refreshScenes()])
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '削除に失敗しました')
+  }
+}
+
+// 章を1つ上に移動
+async function handleMoveChapterUp(chapter: Chapter) {
+  if (chapter.id === undefined) return
+  try {
+    await moveChapterUp(chapter.id)
+    await refreshChapters()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '移動に失敗しました')
+  }
+}
+
+// 章を1つ下に移動
+async function handleMoveChapterDown(chapter: Chapter) {
+  if (chapter.id === undefined) return
+  try {
+    await moveChapterDown(chapter.id)
+    await refreshChapters()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '移動に失敗しました')
+  }
+}
+
+// 章の「これ以上上に動かせない」かどうか
+function isFirstChapter(chapter: Chapter): boolean {
+  return chapters.value[0]?.id === chapter.id
+}
+
+// 章の「これ以上下に動かせない」かどうか
+function isLastChapter(chapter: Chapter): boolean {
+  return chapters.value[chapters.value.length - 1]?.id === chapter.id
 }
 </script>
 
@@ -542,7 +742,7 @@ function isLast(scene: Scene): boolean {
     <!-- 戻るボタン -->
     <button
       type="button"
-      class="text-sm text-blue-600 hover:underline mb-4 inline-flex items-center gap-1"
+      class="text-sm text-slate-600 hover:bg-slate-100 rounded-md px-3 py-1 mb-4 inline-flex items-center gap-1 transition-colors"
       @click="goBack"
     >
       ← 一覧に戻る
@@ -565,12 +765,12 @@ function isLast(scene: Scene): boolean {
       <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
         <h2 class="text-2xl font-bold mb-3">{{ work.title }}</h2>
         <dl class="space-y-2 text-sm">
-          <div class="flex gap-3">
-            <dt class="text-slate-400 shrink-0 w-16">ゴール:</dt>
+          <div class="flex gap-1">
+            <dt class="text-slate-400 shrink-0">ゴール:</dt>
             <dd class="text-slate-700">{{ work.goal || '未設定' }}</dd>
           </div>
-          <div class="flex gap-3">
-            <dt class="text-slate-400 shrink-0 w-16">テーマ:</dt>
+          <div class="flex gap-1">
+            <dt class="text-slate-400 shrink-0">テーマ:</dt>
             <dd class="text-slate-700">{{ work.theme || '未設定' }}</dd>
           </div>
         </dl>
@@ -579,9 +779,11 @@ function isLast(scene: Scene): boolean {
     <!-- シーン一覧 -->
     <section>
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <h3 class="text-lg font-semibold">シーン一覧</h3>
+      <h3 class="text-lg font-semibold">Scenes</h3>
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm text-slate-500">全{{ scenes.length }}シーン</span>
+        <span class="text-sm text-slate-500">
+          {{ chapterFilter === 'all' ? `全${scenes.length}シーン` : `${filteredScenes.length} / 全${scenes.length}シーン` }}
+        </span>
         <button
           type="button"
           class="px-3 py-2 text-sm font-medium rounded-md transition-colors"
@@ -597,7 +799,7 @@ function isLast(scene: Scene): boolean {
         </button>
         <button
           type="button"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+          class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium"
           @click="openCreateSceneDialog"
         >
           + 新規シーン
@@ -605,7 +807,87 @@ function isLast(scene: Scene): boolean {
       </div>
     </div>
 
-        <!-- シーンが0件の時 -->
+        <!-- 章タブ -->
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+          <button
+            type="button"
+            class="px-3 py-1 text-sm rounded-md transition-colors"
+            :class="chapterFilter === 'all'
+              ? 'bg-slate-800 text-white'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+            @click="selectChapterFilter('all')"
+          >
+            全て ({{ chapterCounts.all }})
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1 text-sm rounded-md transition-colors"
+            :class="chapterFilter === 'unassigned'
+              ? 'bg-slate-800 text-white'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+            @click="selectChapterFilter('unassigned')"
+          >
+            未分類 ({{ chapterCounts.unassigned }})
+          </button>
+          <button
+            v-for="chapter in chapters"
+            :key="chapter.id"
+            type="button"
+            class="px-3 py-1 text-sm rounded-md transition-colors"
+            :class="chapterFilter === chapter.id
+              ? 'bg-slate-800 text-white'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'"
+            @click="selectChapterFilter(chapter.id!)"
+          >
+            {{ chapter.title }} ({{ chapterCounts.byChapterId.get(chapter.id!) ?? 0 }})
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm"
+            @click="openCreateChapterDialog"
+          >
+            + 新章
+          </button>
+        </div>
+
+        <!-- 選択中の章の管理コントロール -->
+        <div v-if="selectedChapter" class="flex items-center gap-1 mb-4 text-sm text-slate-500">
+          <span class="mr-1">「{{ selectedChapter.title }}」:</span>
+          <button
+            type="button"
+            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            :disabled="isFirstChapter(selectedChapter)"
+            title="章を上に移動"
+            @click="handleMoveChapterUp(selectedChapter)"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            :disabled="isLastChapter(selectedChapter)"
+            title="章を下に移動"
+            @click="handleMoveChapterDown(selectedChapter)"
+          >
+            ↓
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+            @click="openEditChapterDialog(selectedChapter)"
+          >
+            編集
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            @click="handleDeleteChapter(selectedChapter)"
+          >
+            削除
+          </button>
+        </div>
+
+        <!-- シーンが1つも登録されていない時 -->
         <div
           v-if="scenes.length === 0"
           class="bg-white rounded-lg border border-slate-200 p-8 text-center"
@@ -614,10 +896,19 @@ function isLast(scene: Scene): boolean {
           <p class="text-sm text-slate-500">右上の「+ 新規シーン」から追加してください　</p>
         </div>
 
+        <!-- シーンはあるが、選択中の章には0件の時 -->
+        <div
+          v-else-if="filteredScenes.length === 0"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center"
+        >
+          <p class="text-slate-600 mb-2">この章にはシーンがありません</p>
+          <p class="text-sm text-slate-500">「+ 新規シーン」から追加するか、他のシーンをこの章に割り当ててください</p>
+        </div>
+
         <!-- 　シーンカード一覧 -->
-        <div v-else class="space-y-4">
+        <TransitionGroup v-else tag="div" name="scene-list" class="space-y-2">
           <article
-            v-for="scene in scenes"
+            v-for="scene in filteredScenes"
             :key="scene.id"
             class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md transition-shadow"
           >
@@ -663,22 +954,26 @@ function isLast(scene: Scene): boolean {
                   </button>
                   <button
                     type="button"
-                    class="px-2 py-2 text-sm font-medium rounded-md transition-colors bg-blue-600 active:scale-95 text-white"
+                    class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors active:scale-95"
                     @click="copySceneToClipboard(scene)"
                   >
                     {{ 'コピー' }}
                   </button>
                 </div>
               </div>
-              <p v-if="scene.worldDateTime" class="text-sm text-slate-500 ml-8">
+              <p v-if="scene.worldDateTime" class="text-sm text-slate-500 ml-2">
                 🕐 {{ scene.worldDateTime }}
               </p>
             </div>
 
             <!-- あらすじ -->
             <div v-if="scene.summary" class="mb-3">
-              <p class="text-sm text-slate-400 mb-1">あらすじ/本文:</p>
-              <p class="text-slate-700 whitespace-pre-wrap">{{ scene.summary }}</p>
+              <p class="text-sm mb-1 ml-1">ストーリー</p>
+              <div class="bg-white/80 backdrop-blur-sm border-2 border-emerald-200 rounded-sm shadow-sm p-4">
+                <p
+                  class="text-black whitespace-pre-wrap leading-6 bg-[linear-gradient(90deg,#d1fae5_1px,transparent_1px),linear-gradient(#d1fae5_1px,transparent_1px)] bg-[size:24px_24px]"
+                >{{ scene.summary }}</p>
+              </div>
             </div>
 
             <!-- 補足情報(世界状態・TODO) -->
@@ -690,6 +985,23 @@ function isLast(scene: Scene): boolean {
                 <span class="text-amber-600">📌 TODO:</span> {{ scene.todoNotes }}
               </p>
             </div>
+
+            <!-- 可変フィールド一覧 -->
+            <dl
+              v-if="(scene.customFields ?? []).length > 0"
+              class="space-y-1 pt-3 mt-3 border-t border-slate-100 text-xs"
+            >
+              <div
+                v-for="field in scene.customFields"
+                :key="field.id"
+                class="flex gap-2"
+              >
+                <dt class="text-slate-400 shrink-0">{{ field.name || '(項目名未設定)' }}:</dt>
+                <dd class="text-slate-600 whitespace-pre-wrap flex-1">
+                  {{ field.value || '—' }}
+                </dd>
+              </div>
+            </dl>
 
             <!-- 登場キャラ -->
             <div class="flex items-center gap-2 flex-wrap pt-3 mt-3 border-t border-slate-100">
@@ -733,7 +1045,7 @@ function isLast(scene: Scene): boolean {
                   <p v-if="link.intent" class="text-xs text-slate-600 whitespace-pre-wrap mb-2">
                     {{ link.intent }}
                   </p>
-                  <p v-else class="text-xs text-slate-400 italic mb-2">思惑は未記入です</p>
+                  <p v-else class="text-xs text-slate-400 italic mb-2">行動は未記入です</p>
                   <div class="flex justify-end gap-1">
                     <button
                       type="button"
@@ -756,7 +1068,7 @@ function isLast(scene: Scene): boolean {
               <!-- キャラ追加ボタン -->
               <button
                 type="button"
-                class="w-8 h-8 rounded-full border border-dashed border-slate-300 text-slate-400 hover:border-blue-400 hover:text-blue-500 transition-colors text-sm"
+                class="w-8 h-8 rounded-full border border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 transition-colors text-sm"
                 title="登場キャラを追加"
                 @click="openSceneCharacterManager(scene)"
               >
@@ -765,11 +1077,11 @@ function isLast(scene: Scene): boolean {
             </div>
 
           </article>
-        </div>
+        </TransitionGroup>
         <div class="flex justify-end w-full">
           <button
             type="button"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium mt-4"
+            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium mt-4"
             @click="openCreateSceneDialog"
           >
             + 次のシーン
@@ -781,13 +1093,6 @@ function isLast(scene: Scene): boolean {
       <section class="mt-10">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold">伏線一覧</h3>
-          <button
-            type="button"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-            @click="openCreateForeshadowDialog"
-          >
-            + 新規伏線
-          </button>
         </div>
 
         <!-- ステータスフィルタ -->
@@ -814,11 +1119,26 @@ function isLast(scene: Scene): boolean {
           >
             {{ FORESHADOW_STATUS_LABELS[status] }} ({{ statusCounts[status] }})
           </button>
+          <button
+            type="button"
+            class="px-3 py-1 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm ml-auto"
+            @click="openCreateForeshadowDialog"
+          >
+            + 新規伏線
+          </button>
+        </div>
+
+        <!-- 伏線読み込み中 -->
+        <div
+          v-if="isForeshadowsLoading"
+          class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+        >
+          読み込み中...
         </div>
 
         <!-- 伏線が0件の時 -->
         <div
-          v-if="foreshadows.length === 0"
+          v-else-if="foreshadows.length === 0"
           class="bg-white rounded-lg border border-slate-200 p-8 text-center"
         >
           <p class="text-slate-600 mb-2">まだ伏線が登録されていません</p>
@@ -834,7 +1154,7 @@ function isLast(scene: Scene): boolean {
         </div>
 
         <!-- 伏線カード一覧 -->
-        <div v-else class="space-y-3">
+        <div v-else class="space-y-1.5">
           <article
             v-for="foreshadow in filteredForeshadows"
             :key="foreshadow.id"
@@ -895,19 +1215,27 @@ function isLast(scene: Scene): boolean {
 <!-- キャラクター一覧 -->
 <section class="mt-10">
   <div class="flex items-center justify-between mb-4">
-    <h3 class="text-lg font-semibold">キャラクター一覧</h3>
+    <h3 class="text-lg font-semibold">Characters</h3>
     <button
       type="button"
-      class="px-4 py-2 mb-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+      class="px-4 py-2 mb-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium"
       @click="openCreateCharacterDialog"
     >
       + 新規キャラ
     </button>
   </div>
 
+  <!-- キャラ読み込み中 -->
+  <div
+    v-if="isCharactersLoading"
+    class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
+  >
+    読み込み中...
+  </div>
+
   <!-- キャラが0件の時 -->
   <div
-    v-if="characters.length === 0"
+    v-else-if="characters.length === 0"
     class="bg-white rounded-lg border border-slate-200 p-8 text-center"
   >
     <p class="text-slate-600 mb-2">まだキャラクターが登録されていません</p>
@@ -915,7 +1243,7 @@ function isLast(scene: Scene): boolean {
   </div>
 
   <!-- キャラクターカード一覧 -->
-  <div v-else class="space-y-3">
+  <div v-else class="space-y-1.5">
     <article
       v-for="character in characters"
       :key="character.id"
@@ -984,8 +1312,18 @@ function isLast(scene: Scene): boolean {
         :is-open="isSceneDialogOpen"
         :work-id="workId"
         :editing-scene="editingScene ?? undefined"
+        :chapters="chapters"
+        :default-chapter-id="defaultChapterIdForNewScene"
         @close="closeSceneDialog"
         @submit="handleSceneSubmit"
+      />
+      <!-- 章追加・編集ダイアログ -->
+      <ChapterFormDialog
+        :is-open="isChapterDialogOpen"
+        :work-id="workId"
+        :editing-chapter="editingChapter ?? undefined"
+        @close="closeChapterDialog"
+        @submit="handleChapterSubmit"
       />
       <!-- 伏線追加・編集ダイアログ -->
       <ForeshadowFormDialog
@@ -1017,3 +1355,9 @@ function isLast(scene: Scene): boolean {
     </div>
   </div>
 </template>
+
+<style scoped>
+.scene-list-move {
+  transition: transform 0.3s ease;
+}
+</style>

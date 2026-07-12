@@ -91,65 +91,20 @@ export async function deleteScenesByWork(workId: number): Promise<void> {
 // ─── 内部用ヘルパー関数 ───
 
 /**
- * シーンを1つ上に移動する
- * @param sceneId 移動対象のシーンID
- */
-export async function moveSceneUp(sceneId: number): Promise<void> {
-  const target = await db.scenes.get(sceneId)
-  if (!target) throw new Error('シーンが見つかりません')
-
-  // 同じ作品内で、order が target より小さい中で最大のシーンを探す
-  const above = await db.scenes
-    .where('workId')
-    .equals(target.workId)
-    .filter((s) => s.order < target.order)
-    .sortBy('order')
-    .then((scenes) => scenes[scenes.length - 1])
-
-  // 一番上ならなにもしない
-  if (!above) return
-
-  // order を入れ替え
-  await swapOrders(target.id!, target.order, above.id!, above.order)
-}
-
-/**
- * シーンを1つ下に移動する
- * @param sceneId 移動対象のシーンID
- */
-export async function moveSceneDown(sceneId: number): Promise<void> {
-  const target = await db.scenes.get(sceneId)
-  if (!target) throw new Error('シーンが見つかりません')
-
-  // 同じ作品内で、order が target より大きい中で最小のシーンを探す
-  const below = await db.scenes
-    .where('workId')
-    .equals(target.workId)
-    .filter((s) => s.order > target.order)
-    .sortBy('order')
-    .then((scenes) => scenes[0])
-
-  // 一番下ならなにもしない
-  if (!below) return
-
-  // order を入れ替え
-  await swapOrders(target.id!, target.order, below.id!, below.order)
-}
-
-/**
  * 2つのシーンの order を入れ替える
+ * 章フィルタ表示中は「表示中のリストでの隣」を渡せば、章内での並び替えになる
+ *
+ * @param sceneIdA 入れ替えるシーンA
+ * @param sceneIdB 入れ替えるシーンB
  */
-async function swapOrders(
-  idA: number,
-  orderA: number,
-  idB: number,
-  orderB: number
-): Promise<void> {
+export async function swapSceneOrders(sceneIdA: number, sceneIdB: number): Promise<void> {
+  const [a, b] = await Promise.all([db.scenes.get(sceneIdA), db.scenes.get(sceneIdB)])
+  if (!a || !b) throw new Error('シーンが見つかりません')
+
   const now = new Date()
-  // 両方の order を入れ替える
   await db.transaction('rw', db.scenes, async () => {
-    await db.scenes.update(idA, { order: orderB, updatedAt: now })
-    await db.scenes.update(idB, { order: orderA, updatedAt: now })
+    await db.scenes.update(sceneIdA, { order: b.order, updatedAt: now })
+    await db.scenes.update(sceneIdB, { order: a.order, updatedAt: now })
   })
 }
 

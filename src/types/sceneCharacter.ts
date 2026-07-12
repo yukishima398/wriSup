@@ -2,7 +2,7 @@
  * シーンとキャラクターの紐付け
  *
  * 1シーンに複数キャラ、1キャラに複数シーン(多対多)
- * 各組み合わせに「思惑」という固有情報を持つ
+ * 各組み合わせに「行動」という固有情報を持つ
  */
 export interface SceneCharacter {
     /** 自動採番される ID */
@@ -15,7 +15,7 @@ export interface SceneCharacter {
     characterId: number
   
     /**
-     * このシーンにおけるこのキャラの思惑
+     * このシーンにおけるこのキャラの行動
      * 長文可、改行可、メモやモノローグも記述できる
      */
     intent: string

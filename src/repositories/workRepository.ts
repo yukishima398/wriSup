@@ -5,6 +5,7 @@ import type { Work, WorkInput, WorkUpdate } from '@/types/work'
 import { deleteScenesByWork } from '@/repositories/sceneRepository'
 import { deleteForeshadowsByWork } from '@/repositories/foreshadowRepository'
 import { deleteCharactersByWork } from '@/repositories/characterRepository'
+import { deleteChaptersByWork } from '@/repositories/chapterRepository'
 import { listScenesByWork } from '@/repositories/sceneRepository'
 
 
@@ -66,7 +67,7 @@ export async function deleteWork(id: number): Promise<void> {
   await db.transaction(
     'rw',
     //transactionの引数に含められるのは5つまでなので、配列としてわつ
-    [db.works, db.scenes, db.foreshadows, db.characters, db.sceneCharacters],
+    [db.works, db.scenes, db.foreshadows, db.characters, db.sceneCharacters, db.chapters],
     async () => {
       // シーンを消す前に sceneId を集め、中間テーブルを先に掃除する
       const scenes = await listScenesByWork(id)
@@ -83,6 +84,7 @@ export async function deleteWork(id: number): Promise<void> {
       await deleteForeshadowsByWork(id)
       await deleteScenesByWork(id)
       await deleteCharactersByWork(id)
+      await deleteChaptersByWork(id)
       await db.works.delete(id)
     }
   )

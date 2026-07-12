@@ -101,7 +101,7 @@ function goToDetail(work: Work) {
       <h2 class="text-xl font-semibold">あなたの作品</h2>
       <button
         type="button"
-        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+        class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium"
         @click="openCreateDialog"
       >
         + 新規作品

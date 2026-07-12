@@ -292,7 +292,7 @@ function handleCancel() {
           <!-- 項目追加ボタン -->
           <button
             type="button"
-            class="w-full px-3 py-2 text-sm text-blue-600 border border-dashed border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
+            class="w-full px-3 py-2 text-sm text-emerald-700 border border-dashed border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors"
             @click="addField"
           >
             + 項目を追加
@@ -311,7 +311,7 @@ function handleCancel() {
         </button>
         <button
           type="button"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
           @click="handleSubmit"
         >
           {{ submitLabel }}

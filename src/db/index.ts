@@ -8,6 +8,7 @@ import type { Scene } from '@/types/scene'
 import type { Foreshadow } from '@/types/foreshadow'
 import type { Character } from '@/types/character'
 import type { SceneCharacter } from '@/types/sceneCharacter'
+import type { Chapter } from '@/types/chapter'
 
 // データベースクラス。Dexieを継承して、その機能を使えるようにしている
 export class WriSupDB extends Dexie {
@@ -16,6 +17,7 @@ export class WriSupDB extends Dexie {
   foreshadows!: Table<Foreshadow, number>
   characters!: Table<Character, number>
   sceneCharacters!: Table<SceneCharacter, number>
+  chapters!: Table<Chapter, number>
 
   constructor() {
     super('WriSupDB')//名前
@@ -53,6 +55,16 @@ export class WriSupDB extends Dexie {
       foreshadows: '++id, workId, status, placedSceneId, resolvedSceneId, createdAt',
       characters: '++id, workId, name, createdAt',
       sceneCharacters: '++id, sceneId, characterId, [sceneId+characterId]',
+    })
+
+    // version 6: chapters テーブルを追加(シーンを章単位でまとめる)
+    this.version(6).stores({
+      works: '++id, title, createdAt',
+      scenes: '++id, workId, chapterId, order, createdAt',
+      foreshadows: '++id, workId, status, placedSceneId, resolvedSceneId, createdAt',
+      characters: '++id, workId, name, createdAt',
+      sceneCharacters: '++id, sceneId, characterId, [sceneId+characterId]',
+      chapters: '++id, workId, order, createdAt',
     })
   }
 }

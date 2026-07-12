@@ -154,7 +154,7 @@ function goBackToWork() {
     <!-- 戻るボタン -->
     <button
       type="button"
-      class="text-sm text-blue-600 hover:underline mb-4 inline-flex items-center gap-1"
+      class="text-sm text-slate-600 hover:bg-slate-100 rounded-md px-3 py-1 mb-4 inline-flex items-center gap-1 transition-colors"
       @click="goBackToWork"
     >
       ← 作品「{{ work?.title || '...' }}」に戻る
@@ -204,12 +204,12 @@ function goBackToWork() {
 
       <!-- 可変フィールド一覧 -->
       <section class="mb-8">
-        <h3 class="text-lg font-semibold mb-3">詳細項目</h3>
+        <h3 class="text-lg font-semibold mb-3">Profile</h3>
         <div
           v-if="character.customFields.length === 0"
           class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500"
         >
-          まだ詳細項目が登録されていません。
+          まだ詳細が登録されていません。
         </div>
 
         <div v-else class="bg-white rounded-lg border border-slate-200 p-6">
@@ -233,7 +233,7 @@ function goBackToWork() {
 
       <!-- 行動の一元管理 -->
       <section>
-              <h3 class="text-lg font-semibold mb-3">行動の一元管理</h3>
+              <h3 class="text-lg font-semibold mb-3">Actions</h3>
 
               <div
                 v-if="appearances.length === 0"
@@ -263,11 +263,11 @@ function goBackToWork() {
                     </span>
                   </div>
 
-                  <!-- このシーンでの思惑 -->
+                  <!-- このシーンでの行動 -->
                   <p v-if="link.intent" class="text-sm text-slate-700 whitespace-pre-wrap">
                     {{ link.intent }}
                   </p>
-                  <p v-else class="text-sm text-slate-400 italic">思惑は未記入です</p>
+                  <p v-else class="text-sm text-slate-400 italic">行動は未記入です</p>
                 </div>
               </div>
             </section>

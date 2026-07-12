@@ -221,7 +221,7 @@ function handleCancel() {
         </button>
         <button
           type="button"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
           @click="handleSubmit"
         >
           {{ submitLabel }}

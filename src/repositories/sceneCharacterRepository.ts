@@ -66,7 +66,7 @@ export async function listSceneCharactersByCharacter(
 }
 
 /**
- * 紐付けを更新する(主に思惑の編集)
+ * 紐付けを更新する(主に行動の編集)
  *
  * @param update id と更新したいフィールド
  */
@@ -118,7 +118,7 @@ export async function deleteSceneCharactersByCharacter(
  * (作品単位でまとめて取って、UI側で分けて使う用)
  *
  * @param sceneIds その作品に属するシーンの ID 配列
- * @returns sceneCharacter（キャラ+思惑） の配列
+ * @returns sceneCharacter（キャラ+行動） の配列
  */
 export async function listSceneCharactersByWork(
   sceneIds: number[]
