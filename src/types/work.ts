@@ -15,7 +15,14 @@ export interface Work {
   
     /** 作品のテーマ */
     theme: string
-  
+
+    /**
+     * サムネイル画像(Blob)
+     * ホーム画面の一覧、作品詳細画面のタイトルバナーに表示される
+     * 画像なしの場合は undefined
+     */
+    thumbnail?: Blob
+
     /** 作成日時 */
     createdAt: Date
   

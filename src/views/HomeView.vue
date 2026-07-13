@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { listWorks, createWork, updateWork, deleteWork } from '@/repositories/workRepository'
 import type { Work, WorkInput } from '@/types/work'
 import WorkFormDialog from '@/components/WorkFormDialog.vue'
+import WorkThumbnail from '@/components/WorkThumbnail.vue'
 
 const router = useRouter()
 
@@ -126,39 +127,43 @@ function goToDetail(work: Work) {
       <article
         v-for="work in works"
         :key="work.id"
-        class="bg-white rounded-lg border border-slate-200 p-6 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:hover:border-blue-700"
+        class="relative overflow-hidden bg-white rounded-lg border border-slate-200 p-6 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:hover:border-blue-700"
         @click="goToDetail(work)"
       >
-        <div class="flex items-start justify-between gap-2 mb-2">
-          <h3 class="text-lg font-semibold">{{ work.title }}</h3>
-          <div class="flex items-center gap-1 shrink-0" @click.stop>
-            <button
-              type="button"
-              class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
-              @click="openEditDialog(work)"
-            >
-              編集
-            </button>
-            <button
-              type="button"
-              class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
-              @click="handleDelete(work)"
-            >
-              削除
-            </button>
-          </div>
-        </div>
+        <WorkThumbnail :thumbnail="work.thumbnail" />
 
-        <div class="space-y-1 text-sm">
-          <p class="text-slate-600 dark:text-slate-300">
-            <span class="text-slate-400 dark:text-slate-500">ゴール:</span>{{ work.goal || '未設定' }}
-          </p>
-          <p class="text-slate-600 dark:text-slate-300">
-            <span class="text-slate-400 dark:text-slate-500">テーマ:</span>{{ work.theme || '未設定' }}
-          </p>
-          <p class="text-slate-400 text-xs mt-2 dark:text-slate-500">
-            作成日:{{ formatDate(work.createdAt) }}
-          </p>
+        <div class="relative">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h3 class="text-lg font-semibold">{{ work.title }}</h3>
+            <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <button
+                type="button"
+                class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
+                @click="openEditDialog(work)"
+              >
+                編集
+              </button>
+              <button
+                type="button"
+                class="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
+                @click="handleDelete(work)"
+              >
+                削除
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1 text-sm">
+            <p class="text-slate-600 dark:text-slate-300">
+              <span class="text-slate-400 dark:text-slate-500">ゴール:</span>{{ work.goal || '未設定' }}
+            </p>
+            <p class="text-slate-600 dark:text-slate-300">
+              <span class="text-slate-400 dark:text-slate-500">テーマ:</span>{{ work.theme || '未設定' }}
+            </p>
+            <p class="text-slate-400 text-xs mt-2 dark:text-slate-500">
+              作成日:{{ formatDate(work.createdAt) }}
+            </p>
+          </div>
         </div>
       </article>
     </div>

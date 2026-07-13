@@ -7,6 +7,10 @@
 /** 出力する正方形画像のサイズ(ピクセル) */
 const TARGET_SIZE = 128
 
+/** サムネイル(タイトルバナー用)の出力サイズ(ピクセル) */
+const THUMBNAIL_WIDTH = 640
+const THUMBNAIL_HEIGHT = 240
+
 /** JPEG 圧縮の品質(0.0 〜 1.0) */
 const JPEG_QUALITY = 0.85
 
@@ -19,6 +23,30 @@ const JPEG_QUALITY = 0.85
  * @throws 画像でないファイル、または読み込み失敗時にエラー
  */
 export async function compressToBlob(file: File): Promise<Blob> {
+  return compressToBlobWithSize(file, TARGET_SIZE, TARGET_SIZE)
+}
+
+/**
+ * 作品サムネイル(タイトルバナー)用に、640x240 の JPEG Blob に変換する
+ * 中央クロップで対象のアスペクト比に合わせ、JPEG で圧縮する
+ *
+ * @param file ユーザーが選択した画像ファイル
+ * @returns 圧縮された画像の Blob
+ * @throws 画像でないファイル、または読み込み失敗時にエラー
+ */
+export async function compressThumbnailToBlob(file: File): Promise<Blob> {
+  return compressToBlobWithSize(file, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
+}
+
+/**
+ * 画像ファイルを指定した幅・高さの JPEG Blob に変換する内部ヘルパー
+ * 中央クロップで対象のアスペクト比に合わせてから、指定サイズにリサイズする
+ */
+async function compressToBlobWithSize(
+  file: File,
+  targetWidth: number,
+  targetHeight: number
+): Promise<Blob> {
   // 画像かどうかチェック
   if (!file.type.startsWith('image/')) {
     throw new Error('画像ファイルを選択してください')
@@ -29,22 +57,26 @@ export async function compressToBlob(file: File): Promise<Blob> {
 
   // htmlのCanvas機能を呼び出す
   const canvas = document.createElement('canvas')
-  canvas.width = TARGET_SIZE
-  canvas.height = TARGET_SIZE
+  canvas.width = targetWidth
+  canvas.height = targetHeight
 
   const ctx = canvas.getContext('2d')
   if (!ctx) {
     throw new Error('Canvas の描画コンテキスト取得に失敗しました')
   }
 
-  // 中央クロップの計算
-  const { sx, sy, sSize } = calculateCenterCrop(image.width, image.height)
+  // 中央クロップの計算(対象のアスペクト比に合わせる)
+  const { sx, sy, sWidth, sHeight } = calculateCenterCrop(
+    image.width,
+    image.height,
+    targetWidth / targetHeight
+  )
 
   // 描画(リサイズ + クロップ)
   ctx.drawImage(
     image,
-    sx, sy, sSize, sSize,           // 元画像の切り出し範囲(中央正方形)
-    0, 0, TARGET_SIZE, TARGET_SIZE  // 描画先のサイズ(128x128)
+    sx, sy, sWidth, sHeight,             // 元画像の切り出し範囲(中央、対象比率)
+    0, 0, targetWidth, targetHeight      // 描画先のサイズ
   )
 
   // Blob として出力
@@ -74,20 +106,32 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 }
 
 /**
- * 元画像の中央正方形のクロップ範囲を計算する
+ * 元画像から、指定したアスペクト比(幅/高さ)に収まる中央クロップ範囲を計算する
  */
 function calculateCenterCrop(
   width: number,
-  height: number
-): { sx: number; sy: number; sSize: number } {
-  // 短い辺を基準にする
-  const sSize = Math.min(width, height)
+  height: number,
+  targetAspectRatio: number
+): { sx: number; sy: number; sWidth: number; sHeight: number } {
+  const sourceAspectRatio = width / height
 
-  // 中央を計算
-  const sx = (width - sSize) / 2
-  const sy = (height - sSize) / 2
+  let sWidth: number
+  let sHeight: number
 
-  return { sx, sy, sSize }
+  if (sourceAspectRatio > targetAspectRatio) {
+    // 元画像の方が横長 → 高さを基準に、左右をクロップ
+    sHeight = height
+    sWidth = height * targetAspectRatio
+  } else {
+    // 元画像の方が縦長(または同じ) → 幅を基準に、上下をクロップ
+    sWidth = width
+    sHeight = width / targetAspectRatio
+  }
+
+  const sx = (width - sWidth) / 2
+  const sy = (height - sHeight) / 2
+
+  return { sx, sy, sWidth, sHeight }
 }
 
 /**

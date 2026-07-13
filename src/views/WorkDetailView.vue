@@ -54,6 +54,7 @@ import {
 } from '@/repositories/sceneCharacterRepository'
 import type { SceneCharacter } from '@/types/sceneCharacter'
 import SceneCharacterManagerDialog from '@/components/SceneCharacterManagerDialog.vue'
+import WorkThumbnail from '@/components/WorkThumbnail.vue'
 
 
 //現在のURL情報を取得　route.paramsやqueryなど
@@ -762,7 +763,10 @@ function isLastChapter(chapter: Chapter): boolean {
     <!-- 作品の情報+シーン一覧 dlなどを活かした用語&説明をよりよく伝えるためのオブジェクト -->
     <div v-else-if="work">
       <!-- 作品ヘッダー -->
-      <header class="bg-white rounded-lg border border-slate-200 p-6 mb-6 dark:bg-slate-800 dark:border-slate-700">
+      <header class="relative overflow-hidden bg-white rounded-lg border border-slate-200 p-6 mb-6 dark:bg-slate-800 dark:border-slate-700">
+        <WorkThumbnail :thumbnail="work.thumbnail" />
+
+        <div class="relative">
         <h2 class="text-2xl font-bold mb-3">{{ work.title }}</h2>
         <dl class="space-y-2 text-sm">
           <div class="flex gap-1">
@@ -774,6 +778,7 @@ function isLastChapter(chapter: Chapter): boolean {
             <dd class="text-slate-700 dark:text-slate-300">{{ work.theme || '未設定' }}</dd>
           </div>
         </dl>
+        </div>
       </header>
 
     <!-- シーン一覧 -->
