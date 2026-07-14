@@ -86,6 +86,11 @@ onUnmounted(clearHistoryTimer)
 
 // 履歴の1件を復元する。今の本文が失われないよう、復元前に今の内容もチェックポイントしておく
 function restoreHistoryEntry(entry: SceneHistoryEntry) {
+  const confirmed = window.confirm(
+    `${formatHistoryTime(entry.savedAt)}の内容に戻しますか?\n\n今の内容は履歴に保存されます。`
+  )
+  if (!confirmed) return
+
   clearHistoryTimer()
   checkpointSummaryHistory()
   summary.value = entry.value
