@@ -39,6 +39,7 @@ import {
   FORESHADOW_STATUS_COLORS,
 } from '@/types/foreshadow'
 import { formatScenesAsText,formatSceneAsText } from '@/utils/sceneFormatter'
+import { renderRubyHtml } from '@/utils/rubyFormatter'
 import {
   listCharactersByWork,
   createCharacter,
@@ -977,7 +978,8 @@ function isLastChapter(chapter: Chapter): boolean {
               <div class="bg-white/80 backdrop-blur-sm border-2 border-emerald-200 rounded-sm shadow-sm p-4 dark:border-emerald-800 dark:bg-slate-800/80">
                 <p
                   class="text-black whitespace-pre-wrap leading-6 bg-[linear-gradient(90deg,#d1fae5_1px,transparent_1px),linear-gradient(#d1fae5_1px,transparent_1px)] bg-[size:24px_24px] dark:text-slate-100 dark:bg-[linear-gradient(90deg,#065f46_1px,transparent_1px),linear-gradient(#065f46_1px,transparent_1px)]"
-                >{{ scene.summary }}</p>
+                  v-html="renderRubyHtml(scene.summary)"
+                ></p>
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 //編集画面
-import { ref, watch, computed, toRaw, onUnmounted } from 'vue'
+import { ref, watch, computed, toRaw, onUnmounted, nextTick } from 'vue'
 import type { Scene, SceneInput, SceneField, SceneHistoryEntry } from '@/types/scene'
 import { createEmptySceneField, MAX_SUMMARY_HISTORY } from '@/types/scene'
 import type { Chapter } from '@/types/chapter'
@@ -55,7 +55,114 @@ const editingFieldId = ref<string | null>(null)
 // ストーリー欄の履歴(数秒入力が止まるたびにチェックポイントを積む。サーバー通信なし)
 const summaryHistory = ref<SceneHistoryEntry[]>([])
 const isHistoryOpen = ref(false)
+// ストーリー編集専用ページ(フルスクリーン)を開いているか。summaryを直接編集するので入力は即座に反映される
+const isStoryEditorOpen = ref(false)
 let historyTimer: ReturnType<typeof setTimeout> | undefined
+
+// ルビ機能:編集専用ページのテキストエリア本体への参照(選択範囲の取得・書き換えに使う)
+const storyTextareaRef = ref<HTMLTextAreaElement | null>(null)
+const isRubyDialogOpen = ref(false)
+// ルビを振る対象として選択された文字列(ダイアログ内では読み取り専用表示)
+const rubyBaseText = ref('')
+// これから振るルビ(ふりがな)の入力値
+const rubyReading = ref('')
+// ダイアログを開いた時点の選択範囲(summary文字列内でのインデックス)
+let rubySelectionRange: { start: number; end: number } | null = null
+
+// 編集専用ページのテキストエリアの選択範囲を取得する。未選択・複数行選択ならアラートを出してnull
+function getStorySelection(): { start: number; end: number; text: string } | null {
+  const el = storyTextareaRef.value
+  if (!el) return null
+
+  const start = el.selectionStart
+  const end = el.selectionEnd
+  if (start === end) {
+    alert('文字列を選択してください')
+    return null
+  }
+
+  const text = summary.value.slice(start, end)
+  if (text.includes('\n')) {
+    alert('複数行にまたがる選択には振れません')
+    return null
+  }
+
+  return { start, end, text }
+}
+
+// summaryの指定範囲を文字列に置き換え、カーソルを挿入直後の位置に戻す
+function replaceStoryRange(start: number, end: number, text: string) {
+  const before = summary.value.slice(0, start)
+  const after = summary.value.slice(end)
+  summary.value = `${before}${text}${after}`
+
+  // DOM更新後にカーソルを挿入した文字列の直後へ戻す
+  nextTick(() => {
+    const el = storyTextareaRef.value
+    if (!el) return
+    const cursor = before.length + text.length
+    el.focus()
+    el.setSelectionRange(cursor, cursor)
+  })
+}
+
+// ｜文字《ふりがな》の記法でsummaryの指定範囲を置き換える
+function insertRubyNotation(start: number, end: number, base: string, reading: string) {
+  replaceStoryRange(start, end, `｜${base}《${reading}》`)
+}
+
+// カーソル位置(選択があれば選択範囲を置き換えて)に文字列を挿入する
+function insertAtCursor(text: string) {
+  const el = storyTextareaRef.value
+  if (!el) return
+  replaceStoryRange(el.selectionStart, el.selectionEnd, text)
+}
+
+// 三点リーダー(……)をカーソル位置に挿入する
+function insertEllipsis() {
+  insertAtCursor('……')
+}
+
+// ダッシュ(――)をカーソル位置に挿入する
+function insertDash() {
+  insertAtCursor('――')
+}
+
+// 選択中の文字列に対してルビ入力ダイアログを開く
+function openRubyDialog() {
+  const selection = getStorySelection()
+  if (!selection) return
+
+  rubySelectionRange = { start: selection.start, end: selection.end }
+  rubyBaseText.value = selection.text
+  rubyReading.value = ''
+  isRubyDialogOpen.value = true
+}
+
+// ルビダイアログをキャンセルして閉じる
+function cancelRubyDialog() {
+  isRubyDialogOpen.value = false
+  rubySelectionRange = null
+}
+
+// 入力されたふりがなを｜文字《ふりがな》の記法でsummaryに書き戻す
+function confirmRuby() {
+  const reading = rubyReading.value.trim()
+  if (!reading || !rubySelectionRange) return
+
+  insertRubyNotation(rubySelectionRange.start, rubySelectionRange.end, rubyBaseText.value, reading)
+  isRubyDialogOpen.value = false
+  rubySelectionRange = null
+}
+
+// 傍点:ダイアログなしで選択範囲に文字数分の「・」のルビを振る
+function applyBouten() {
+  const selection = getStorySelection()
+  if (!selection) return
+
+  const dots = '・'.repeat(selection.text.length)
+  insertRubyNotation(selection.start, selection.end, selection.text, dots)
+}
 
 // 現在のストーリー本文を履歴に積む(直前のチェックポイントと同じなら何もしない)
 function checkpointSummaryHistory() {
@@ -125,6 +232,9 @@ watch(() => props.isOpen, (newValue) => {
       : []
     editingFieldId.value = null
     isHistoryOpen.value = false
+    isStoryEditorOpen.value = false
+    isRubyDialogOpen.value = false
+    rubySelectionRange = null
   }
 })
 
@@ -268,12 +378,23 @@ function handleCancel() {
             </label>
             <span class="text-xs text-slate-400 dark:text-slate-500">{{ summary.length }}文字</span>
           </div>
-          <textarea
-            v-model="summary"
-            rows="4"
-            class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
-            placeholder="このシーンで起きることの要約"
-          ></textarea>
+          <div class="relative">
+            <textarea
+              v-model="summary"
+              rows="4"
+              class="w-full px-3 py-2 pb-8 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
+              placeholder="このシーンで起きることの要約"
+            ></textarea>
+            <!-- 右下:編集専用ページ(フルスクリーン)へ切り替え -->
+            <button
+              type="button"
+              class="absolute bottom-2 right-2 px-2 py-1 text-xs bg-white/90 text-emerald-700 border border-emerald-300 rounded-md shadow-sm hover:bg-emerald-50 transition-colors dark:bg-slate-800/90 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
+              title="編集専用ページを開く"
+              @click="isStoryEditorOpen = true"
+            >
+              ⛶ 編集専用ページ
+            </button>
+          </div>
 
           <!-- ストーリー履歴 -->
           <div class="mt-1">
@@ -427,6 +548,148 @@ function handleCancel() {
         >
           {{ submitLabel }}
         </button>
+      </div>
+    </div>
+
+    <!-- ストーリー編集専用ページ(フルスクリーン)。summaryを直接編集するのでダイアログ側に即座に反映される -->
+    <div
+      v-if="isStoryEditorOpen"
+      class="fixed inset-0 bg-white z-[60] flex flex-col dark:bg-slate-900"
+    >
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0 dark:border-slate-700">
+        <div class="min-w-0">
+          <h3 class="text-lg font-semibold">ストーリー編集</h3>
+          <div class="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              class="px-3 py-1 text-xs text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors shrink-0 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
+              title="選択した文字列にルビを振る"
+              @click="openRubyDialog"
+            >
+              ルビ
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1 text-xs text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors shrink-0 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
+              title="選択した文字列に傍点(・)を振る"
+              @click="applyBouten"
+            >
+              傍点
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1 text-xs text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors shrink-0 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
+              title="カーソル位置に……を挿入する"
+              @click="insertEllipsis"
+            >
+              ……
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1 text-xs text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors shrink-0 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
+              title="カーソル位置に――を挿入する"
+              @click="insertDash"
+            >
+              ――
+            </button>
+            <p class="text-sm text-slate-500 truncate dark:text-slate-400">{{ title || '無題' }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span class="text-xs text-slate-400 dark:text-slate-500">{{ summary.length }}文字</span>
+          <button
+            type="button"
+            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
+            @click="isStoryEditorOpen = false"
+          >
+            閉じる
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-3">
+        <textarea
+          ref="storyTextareaRef"
+          v-model="summary"
+          autofocus
+          class="w-full flex-1 min-h-[50vh] px-4 py-3 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600 leading-7"
+          placeholder="このシーンで起きることの要約"
+          @keydown.esc="isStoryEditorOpen = false"
+        ></textarea>
+
+        <!-- ストーリー履歴 -->
+        <div>
+          <button
+            type="button"
+            class="text-xs text-slate-500 hover:text-slate-700 transition-colors dark:text-slate-400"
+            @click="isHistoryOpen = !isHistoryOpen"
+          >
+            履歴({{ summaryHistory.length }}件) {{ isHistoryOpen ? '▲' : '▼' }}
+          </button>
+          <div
+            v-if="isHistoryOpen"
+            class="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-md bg-slate-50 divide-y divide-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:divide-slate-700"
+          >
+            <p
+              v-if="summaryHistory.length === 0"
+              class="text-xs text-slate-400 italic p-2 dark:text-slate-500"
+            >
+              まだ履歴がありません(数秒手を止めると自動保存されます)
+            </p>
+            <button
+              v-for="entry in [...summaryHistory].reverse()"
+              :key="entry.savedAt.getTime()"
+              type="button"
+              class="w-full text-left px-2 py-1.5 hover:bg-white dark:hover:bg-slate-700 transition-colors"
+              title="クリックしてこの内容に戻す"
+              @click="restoreHistoryEntry(entry)"
+            >
+              <span class="text-xs text-slate-400 dark:text-slate-500">{{ formatHistoryTime(entry.savedAt) }}</span>
+              <span class="block text-xs text-slate-600 truncate dark:text-slate-300">{{ entry.value }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ルビ入力ダイアログ -->
+    <div
+      v-if="isRubyDialogOpen"
+      class="fixed inset-0 bg-black/50 flex z-[70] p-4 items-center justify-center dark:bg-black/70"
+      @click.self="cancelRubyDialog"
+    >
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-sm flex flex-col dark:bg-slate-800">
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 class="text-lg font-semibold">ルビを振る</h3>
+        </div>
+        <div class="px-6 py-8 flex flex-col items-center gap-1">
+          <!-- ルビ(ふりがな)の入力欄。実際のルビ表示のように対象文字の上に配置する -->
+          <input
+            v-model="rubyReading"
+            type="text"
+            required
+            class="px-2 py-1 text-sm text-center border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
+            placeholder="ふりがなを入力"
+            @keyup.enter="confirmRuby"
+          />
+          <p class="text-xl px-2 text-slate-900 dark:text-slate-100">{{ rubyBaseText }}</p>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+          <button
+            type="button"
+            class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
+            @click="cancelRubyDialog"
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="!rubyReading.trim()"
+            @click="confirmRuby"
+          >
+            決定
+          </button>
+        </div>
       </div>
     </div>
   </div>
