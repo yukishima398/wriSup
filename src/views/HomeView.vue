@@ -134,7 +134,7 @@ function goToDetail(work: Work) {
 
         <div class="relative">
           <div class="flex items-start justify-between gap-2 mb-2">
-            <h3 class="text-lg font-semibold">{{ work.title }}</h3>
+            <h3 class="text-lg font-semibold bg-gradient-to-r from-white/20 to-transparent">{{ work.title }}</h3>
             <div class="flex items-center gap-1 shrink-0" @click.stop>
               <button
                 type="button"
@@ -154,10 +154,10 @@ function goToDetail(work: Work) {
           </div>
 
           <div class="space-y-1 text-sm">
-            <p class="text-slate-600 dark:text-slate-300">
+            <p class="text-slate-600 dark:text-slate-300 bg-gradient-to-r from-white/20 to-transparent">
               <span class="text-slate-400 dark:text-slate-500">ゴール:</span>{{ work.goal || '未設定' }}
             </p>
-            <p class="text-slate-600 dark:text-slate-300">
+            <p class="text-slate-600 dark:text-slate-300 bg-gradient-to-r from-white/20 to-transparent">
               <span class="text-slate-400 dark:text-slate-500">テーマ:</span>{{ work.theme || '未設定' }}
             </p>
             <p class="text-slate-400 text-xs mt-2 dark:text-slate-500">

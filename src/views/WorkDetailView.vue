@@ -767,13 +767,13 @@ function isLastChapter(chapter: Chapter): boolean {
         <WorkThumbnail :thumbnail="work.thumbnail" />
 
         <div class="relative">
-        <h2 class="text-2xl font-bold mb-3">{{ work.title }}</h2>
+        <h2 class="text-2xl font-bold mb-3 bg-gradient-to-r from-white/20 to-transparent">{{ work.title }}</h2>
         <dl class="space-y-2 text-sm">
-          <div class="flex gap-1">
+          <div class="flex gap-1 bg-gradient-to-r from-white/20 to-transparent">
             <dt class="text-slate-400 shrink-0 dark:text-slate-500">ゴール:</dt>
             <dd class="text-slate-700 dark:text-slate-300">{{ work.goal || '未設定' }}</dd>
           </div>
-          <div class="flex gap-1">
+          <div class="flex gap-1 bg-gradient-to-r from-white/20 to-transparent">
             <dt class="text-slate-400 shrink-0 dark:text-slate-500">テーマ:</dt>
             <dd class="text-slate-700 dark:text-slate-300">{{ work.theme || '未設定' }}</dd>
           </div>
