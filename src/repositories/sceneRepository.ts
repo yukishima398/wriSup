@@ -5,26 +5,49 @@ import { deleteSceneCharactersByScene } from '@/repositories/sceneCharacterRepos
 /**
  * シーンを新規作成する
  * order は自動採番される(その作品内の最大order + 1)
+ * insertAfterSceneId を指定すると、そのシーンの直後に挿入される(以降のシーンは order が1つずつ後ろにずれる)
  *
  * @param input シーンの内容(order を除く全フィールド)
+ * @param insertAfterSceneId 直後に挿入したいシーンの ID(省略時は末尾に追加)
  * @returns 作成されたシーンの ID
  */
 export async function createScene(
-  input: Omit<SceneInput, 'order'>//orderは自動採番。入力させない
+  input: Omit<SceneInput, 'order'>,//orderは自動採番。入力させない
+  insertAfterSceneId?: number
 ): Promise<number> {
   const now = new Date()
 
-  // 同じ作品内の最大 order を取得して +1
-  const lastOrder = await getMaxOrderInWork(input.workId)
-  const newOrder = lastOrder + 1
+  return await db.transaction('rw', db.scenes, async () => {
+    let newOrder: number
 
-  const id = await db.scenes.add({
-    ...input,
-    order: newOrder,
-    createdAt: now,
-    updatedAt: now,
+    if (insertAfterSceneId !== undefined) {
+      // 指定シーンの直後に挿入:そのシーンの order を取得し、それより後ろのシーンを1つずつ後ろにずらす
+      const afterScene = await db.scenes.get(insertAfterSceneId)
+      if (!afterScene) throw new Error('挿入先のシーンが見つかりません')
+
+      newOrder = afterScene.order + 1
+      const following = await db.scenes
+        .where('workId')
+        .equals(input.workId)
+        .filter((s) => s.order > afterScene.order)
+        .toArray()
+      await Promise.all(
+        following.map((s) => db.scenes.update(s.id!, { order: s.order + 1, updatedAt: now }))
+      )
+    } else {
+      // 同じ作品内の最大 order を取得して +1
+      const lastOrder = await getMaxOrderInWork(input.workId)
+      newOrder = lastOrder + 1
+    }
+
+    const id = await db.scenes.add({
+      ...input,
+      order: newOrder,
+      createdAt: now,
+      updatedAt: now,
+    })
+    return id as number
   })
-  return id as number
 }
 
 /**

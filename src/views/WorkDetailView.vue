@@ -528,9 +528,15 @@ const chapterCounts = computed(() => {
   return { all: scenes.value.length, unassigned, byChapterId: counts }
 })
 
+// 「+次話」でシーンごとに指定する章(セットされていればフィルタより優先)
+const nextEpisodeChapterOverride = ref<number | undefined>(undefined)
+// 「+次話」の挿入先(このシーンの直後に新規シーンを挿入する)
+const insertAfterSceneId = ref<number | undefined>(undefined)
+
 // 「+ 新規シーン」を押したとき、特定の章に絞り込んでいればその章を初期選択する
 const defaultChapterIdForNewScene = computed(() =>
-  typeof chapterFilter.value === 'number' ? chapterFilter.value : undefined
+  nextEpisodeChapterOverride.value ??
+  (typeof chapterFilter.value === 'number' ? chapterFilter.value : undefined)
 )
 
 onMounted(fetchAll)
@@ -545,6 +551,16 @@ function goBack() {
 // シーン新規追加ダイアログを開く
 function openCreateSceneDialog() {
   editingScene.value = null
+  nextEpisodeChapterOverride.value = undefined
+  insertAfterSceneId.value = undefined
+  isSceneDialogOpen.value = true
+}
+
+// 「+次話」:そのシーンの直後に、同じ章を初期選択した状態で新規シーンを挿入する
+function openCreateNextEpisodeDialog(scene: Scene) {
+  editingScene.value = null
+  nextEpisodeChapterOverride.value = scene.chapterId
+  insertAfterSceneId.value = scene.id
   isSceneDialogOpen.value = true
 }
 
@@ -558,6 +574,8 @@ function openEditSceneDialog(scene: Scene) {
 function closeSceneDialog() {
   isSceneDialogOpen.value = false
   editingScene.value = null
+  nextEpisodeChapterOverride.value = undefined
+  insertAfterSceneId.value = undefined
 }
 
 // シーン保存処理
@@ -571,7 +589,7 @@ async function handleSceneSubmit(input: Omit<SceneInput, 'order'>) {
       })
     } else {
       // 新規作成モード
-      await createScene(input)
+      await createScene(input, insertAfterSceneId.value)
     }
     closeSceneDialog()
     await refreshScenes()
@@ -966,6 +984,13 @@ function isLastChapter(chapter: Chapter): boolean {
                     {{ 'コピー' }}
                   </button>
                 </div>
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors shrink-0 dark:text-slate-300 dark:hover:bg-slate-700"
+                  @click="openCreateNextEpisodeDialog(scene)"
+                >
+                  + 次話
+                </button>
               </div>
               <p v-if="scene.worldDateTime" class="text-sm text-slate-500 ml-2 dark:text-slate-400">
                 🕐 {{ scene.worldDateTime }}
