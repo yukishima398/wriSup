@@ -34,6 +34,7 @@ import type {
 import SceneFormDialog from '@/components/SceneFormDialog.vue'
 import ForeshadowFormDialog from '@/components/ForeshadowFormDialog.vue'
 import ChapterFormDialog from '@/components/ChapterFormDialog.vue'
+import ChapterManagerDialog from '@/components/ChapterManagerDialog.vue'
 import {
   FORESHADOW_STATUS_LABELS,
   FORESHADOW_STATUS_COLORS,
@@ -93,6 +94,8 @@ const chapterFilter = ref<number | 'all' | 'unassigned'>('all')
 const isChapterDialogOpen = ref(false)
 // 編集対象の章　null なら新規作成モード
 const editingChapter = ref<Chapter | null>(null)
+// 章管理(並び替え)ダイアログの状態
+const isChapterManagerDialogOpen = ref(false)
 // キャラクターの状態
 const characters = ref<Character[]>([])
 // シーン×キャラ紐付けの一覧(作品全体)
@@ -665,12 +668,6 @@ function selectChapterFilter(filter: number | 'all' | 'unassigned') {
   chapterFilter.value = filter
 }
 
-// 新規章ダイアログを開く
-function openCreateChapterDialog() {
-  editingChapter.value = null
-  isChapterDialogOpen.value = true
-}
-
 // 編集章ダイアログを開く
 function openEditChapterDialog(chapter: Chapter) {
   editingChapter.value = chapter
@@ -681,6 +678,16 @@ function openEditChapterDialog(chapter: Chapter) {
 function closeChapterDialog() {
   isChapterDialogOpen.value = false
   editingChapter.value = null
+}
+
+// 章管理(並び替え)ダイアログを開く
+function openChapterManagerDialog() {
+  isChapterManagerDialogOpen.value = true
+}
+
+// 章管理ダイアログを閉じる
+function closeChapterManagerDialog() {
+  isChapterManagerDialogOpen.value = false
 }
 
 // 章保存処理
@@ -868,9 +875,9 @@ function isLastChapter(chapter: Chapter): boolean {
           <button
             type="button"
             class="px-3 py-1 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm"
-            @click="openCreateChapterDialog"
+            @click="openChapterManagerDialog"
           >
-            + 新章
+            章を編集
           </button>
         </div>
 
@@ -1356,6 +1363,14 @@ function isLastChapter(chapter: Chapter): boolean {
         :editing-chapter="editingChapter ?? undefined"
         @close="closeChapterDialog"
         @submit="handleChapterSubmit"
+      />
+      <!-- 章編集(並び替え)ダイアログ -->
+      <ChapterManagerDialog
+        :is-open="isChapterManagerDialogOpen"
+        :work-id="workId"
+        :chapters="chapters"
+        @close="closeChapterManagerDialog"
+        @changed="refreshChapters"
       />
       <!-- 伏線追加・編集ダイアログ -->
       <ForeshadowFormDialog
