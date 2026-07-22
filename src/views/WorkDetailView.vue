@@ -810,11 +810,8 @@ function isLastChapter(chapter: Chapter): boolean {
     <!-- シーン一覧 -->
     <section>
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <h3 class="text-lg font-semibold">Scenes</h3>
+      <h3 class="text-lg font-semibold">{{ filteredScenes.length }} Scenes</h3>
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm text-slate-500 dark:text-slate-400">
-          {{ chapterFilter === 'all' ? `全${scenes.length}シーン` : `${filteredScenes.length} / 全${scenes.length}シーン` }}
-        </span>
         <button
           type="button"
           class="px-3 py-2 text-sm font-medium rounded-md transition-colors"
