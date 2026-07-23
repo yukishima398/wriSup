@@ -1,5 +1,5 @@
 // HTML特殊文字をエスケープする(v-htmlで描画する前に必須)
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -9,7 +9,7 @@ function escapeHtml(text: string): string {
 }
 
 // ｜文字《ふりがな》 の形式にマッチする(｜の直後から《の直前までが対象文字)
-const RUBY_PATTERN = /｜([^｜\n]+?)《([^《》\n]+)》/g
+export const RUBY_PATTERN = /｜([^｜\n]+?)《([^《》\n]+)》/g
 
 /**
  * 「｜文字《ふりがな》」記法をルビ付きのHTMLに変換する

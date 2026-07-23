@@ -35,6 +35,7 @@ import SceneFormDialog from '@/components/SceneFormDialog.vue'
 import ForeshadowFormDialog from '@/components/ForeshadowFormDialog.vue'
 import ChapterFormDialog from '@/components/ChapterFormDialog.vue'
 import ChapterManagerDialog from '@/components/ChapterManagerDialog.vue'
+import SceneExportDialog from '@/components/SceneExportDialog.vue'
 import {
   FORESHADOW_STATUS_LABELS,
   FORESHADOW_STATUS_COLORS,
@@ -96,6 +97,8 @@ const isChapterDialogOpen = ref(false)
 const editingChapter = ref<Chapter | null>(null)
 // 章管理(並び替え)ダイアログの状態
 const isChapterManagerDialogOpen = ref(false)
+// テキストファイル変換ダイアログの状態
+const isSceneExportDialogOpen = ref(false)
 // キャラクターの状態
 const characters = ref<Character[]>([])
 // シーン×キャラ紐付けの一覧(作品全体)
@@ -690,6 +693,16 @@ function closeChapterManagerDialog() {
   isChapterManagerDialogOpen.value = false
 }
 
+// テキストファイル変換ダイアログを開く
+function openSceneExportDialog() {
+  isSceneExportDialogOpen.value = true
+}
+
+// テキストファイル変換ダイアログを閉じる
+function closeSceneExportDialog() {
+  isSceneExportDialogOpen.value = false
+}
+
 // 章保存処理
 async function handleChapterSubmit(input: ChapterInput) {
   try {
@@ -824,6 +837,14 @@ function isLastChapter(chapter: Chapter): boolean {
           @click="copyScenesToClipboard"
         >
           {{ copyButtonLabel }}
+        </button>
+        <button
+          type="button"
+          class="px-3 py-2 text-sm font-medium rounded-md bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700"
+          :disabled="scenes.length === 0"
+          @click="openSceneExportDialog"
+        >
+          テキスト変換
         </button>
         <button
           type="button"
@@ -1368,6 +1389,13 @@ function isLastChapter(chapter: Chapter): boolean {
         :chapters="chapters"
         @close="closeChapterManagerDialog"
         @changed="refreshChapters"
+      />
+      <!-- テキストファイル変換ダイアログ -->
+      <SceneExportDialog
+        :is-open="isSceneExportDialogOpen"
+        :work="work"
+        :scenes="scenes"
+        @close="closeSceneExportDialog"
       />
       <!-- 伏線追加・編集ダイアログ -->
       <ForeshadowFormDialog
