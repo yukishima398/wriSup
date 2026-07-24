@@ -1,6 +1,5 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect } from 'vitest'
-import { db } from '@/db'
 import { createScene, listScenesByWork } from '@/repositories/sceneRepository'
 
 // テスト用の共通シーン入力(タイトルだけ差し替えて使う)
