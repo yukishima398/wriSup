@@ -99,7 +99,7 @@ async function handleRestoreFileSelected(event: Event) {
       <span v-else>☀️</span>
     </button>
 
-    <!-- headerのbackdrop-blurがfixed/absolute要素の包含ブロックを作ってしまうため、-->
+    <!-- headerのbackdrop-blurがfixed/absolute要素の包含ブロックを作ってしまうため-->
     <!-- 背景・メニュー本体ともにbodyへteleportし、ボタンの実座標から位置を算出する -->
     <Teleport to="body">
       <div v-if="isOpen" class="fixed inset-0 z-40" @click="closeMenu" />
@@ -113,7 +113,7 @@ async function handleRestoreFileSelected(event: Event) {
           class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors dark:text-slate-200 dark:hover:bg-slate-700"
           @click="handleToggleDarkMode"
         >
-          {{ isDark ? '☀️ ライトモードに切替' : '🌙 ダークモードに切替' }}
+          {{ isDark ? 'ライトモードに切替' : 'ダークモードに切替' }}
         </button>
         <button
           type="button"
@@ -121,7 +121,7 @@ async function handleRestoreFileSelected(event: Event) {
           :disabled="isBusy"
           @click="handleExportBackup"
         >
-          バックアップ
+          バックアップファイルをDL
         </button>
         <button
           type="button"
