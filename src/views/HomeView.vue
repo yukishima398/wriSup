@@ -5,6 +5,7 @@ import { listWorks, createWork, updateWork, deleteWork } from '@/repositories/wo
 import type { Work, WorkInput } from '@/types/work'
 import WorkFormDialog from '@/components/WorkFormDialog.vue'
 import WorkThumbnail from '@/components/WorkThumbnail.vue'
+import { exportBackup, parseBackupFile, restoreBackup } from '@/utils/backup'
 
 const router = useRouter()
 
@@ -94,19 +95,98 @@ function goToDetail(work: Work) {
   router.push(`/works/${work.id}`)
 }
 
+// バックアップ処理中フラグ(連打防止)
+const isBackupBusy = ref(false)
+// 復元用の非表示ファイル入力への参照
+const restoreFileInput = ref<HTMLInputElement | null>(null)
+
+// 全データをJSONファイルとしてダウンロード
+async function handleExportBackup() {
+  if (works.value.length === 0) {
+    alert('バックアップする作品がありません')
+    return
+  }
+  isBackupBusy.value = true
+  try {
+    await exportBackup()
+  } catch (e) {
+    alert(e instanceof Error ? e.message : 'バックアップの作成に失敗しました')
+  } finally {
+    isBackupBusy.value = false
+  }
+}
+
+// 「復元」ボタン:非表示のファイル入力を開く
+function openRestoreFilePicker() {
+  restoreFileInput.value?.click()
+}
+
+// ファイル選択後、確認の上で全データを置き換える
+async function handleRestoreFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // 同じファイルを連続選択できるようにリセット
+
+  if (!file) return
+
+  const confirmed = window.confirm(
+    'バックアップから復元しますか?\n\n現在ブラウザに保存されている全ての作品・シーン・キャラクター・伏線が、このファイルの内容で上書きされます。\nこの操作は取り消せません。'
+  )
+  if (!confirmed) return
+
+  isBackupBusy.value = true
+  try {
+    const data = await parseBackupFile(file)
+    await restoreBackup(data)
+    await fetchWorks()
+    alert('復元が完了しました')
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '復元に失敗しました')
+  } finally {
+    isBackupBusy.value = false
+  }
+}
+
 </script>
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
       <h2 class="text-xl font-semibold">あなたの作品</h2>
-      <button
-        type="button"
-        class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium"
-        @click="openCreateDialog"
-      >
-        + 新規作品
-      </button>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          class="px-3 py-2 text-sm font-medium rounded-md bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700 disabled:opacity-50"
+          :disabled="isBackupBusy"
+          title="全データをJSONファイルとしてダウンロードする"
+          @click="handleExportBackup"
+        >
+          バックアップ
+        </button>
+        <button
+          type="button"
+          class="px-3 py-2 text-sm font-medium rounded-md bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700 disabled:opacity-50"
+          :disabled="isBackupBusy"
+          title="バックアップファイルから全データを復元する(現在のデータは上書きされます)"
+          @click="openRestoreFilePicker"
+        >
+          復元
+        </button>
+        <input
+          ref="restoreFileInput"
+          type="file"
+          accept="application/json"
+          class="hidden"
+          @change="handleRestoreFileSelected"
+        />
+        <button
+          type="button"
+          class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium"
+          @click="openCreateDialog"
+        >
+          + 新規作品
+        </button>
+      </div>
     </div>
 
     <div v-if="isLoading" class="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">

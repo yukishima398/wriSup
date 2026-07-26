@@ -8,3 +8,7 @@ import router from './router'
 createApp(App).
     use(router).// これでコンポーネント内で $route や $router が使えるようになる
         mount('#app')// index.html にある <div id="app"> にアプリをマウント
+
+// 全データがIndexedDBのみに保存されるアプリのため、ブラウザに「消さないで」と明示的に要求する
+// (ストレージ逼迫時の自動削除リスクを下げる。iOSのSafariでは7日ルールを完全には防げない)
+navigator.storage?.persist?.()
