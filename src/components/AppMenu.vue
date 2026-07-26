@@ -15,8 +15,11 @@ const restoreFileInput = ref<HTMLInputElement | null>(null)
 const menuButtonRef = ref<HTMLButtonElement | null>(null)
 // メニュー本体をbodyへteleportするため、ボタンの位置から算出した固定配置スタイル
 const menuStyle = ref({ top: '0px', right: '0px' })
+// タップするたびにアメのアイコンを90度ずつ回転させる(見た目の演出用。開閉ロジックとは無関係)
+const iconRotation = ref(0)
 
 function toggleMenu() {
+  iconRotation.value += 90
   isOpen.value = !isOpen.value
   if (isOpen.value) {
     // ボタンのDOM更新(開閉クラスなど)後に正確な位置を取るため次のtickで計算する
@@ -95,8 +98,18 @@ async function handleRestoreFileSelected(event: Event) {
       aria-label="メニュー"
       @click="toggleMenu"
     >
-      <span v-if="isDark">🌙</span>
-      <span v-else>☀️</span>
+      <!-- アメ(飴)のマーク:キャンディの包み紙をイメージしたアイコン。タップごとに90度回転する -->
+      <svg
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        class="w-6 h-6 text-emerald-600 dark:text-emerald-400 transition-transform duration-300"
+        :style="{ transform: `rotate(${iconRotation}deg)` }"
+        aria-hidden="true"
+      >
+        <path d="M8.5 12 3 7.5v9L8.5 12Z" />
+        <path d="M15.5 12 21 7.5v9L15.5 12Z" />
+        <circle cx="12" cy="12" r="5.5" />
+      </svg>
     </button>
 
     <!-- headerのbackdrop-blurがfixed/absolute要素の包含ブロックを作ってしまうため-->

@@ -1,6 +1,8 @@
 # さっかのアメ-執筆支援ツール-
-https://wri-sup.pages.dev/（オフライン版）
-https://wso.pages.dev/（オンライン版）
+https://wri-sup.pages.dev/
+（オフライン版）
+https://wso.pages.dev/
+（オンライン版）
 
 ### このツールの目的
 
