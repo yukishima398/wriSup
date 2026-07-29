@@ -4,6 +4,7 @@ import { ref, watch, computed, toRaw, onUnmounted, nextTick } from 'vue'
 import type { Scene, SceneInput, SceneField, SceneHistoryEntry } from '@/types/scene'
 import { createEmptySceneField, MAX_SUMMARY_HISTORY } from '@/types/scene'
 import type { Chapter } from '@/types/chapter'
+import { diffChars, type Change } from 'diff'
 
 // ストーリー欄の履歴チェックポイントを取るまでの入力停止時間
 const HISTORY_DEBOUNCE_MS = 3000
@@ -191,16 +192,33 @@ function clearHistoryTimer() {
 }
 onUnmounted(clearHistoryTimer)
 
-// 履歴の1件を復元する。今の本文が失われないよう、復元前に今の内容もチェックポイントしておく
-function restoreHistoryEntry(entry: SceneHistoryEntry) {
-  const confirmed = window.confirm(
-    `${formatHistoryTime(entry.savedAt)}の内容に戻しますか?\n\n今の内容は履歴に保存されます。`
-  )
-  if (!confirmed) return
+// 履歴の1件を復元する前に、差分確認ダイアログを開く対象(nullなら非表示)
+const historyDiffEntry = ref<SceneHistoryEntry | null>(null)
+
+// 今の内容 → 復元しようとしている履歴の内容、の文字単位の差分
+const historyDiffParts = computed<Change[]>(() => {
+  if (!historyDiffEntry.value) return []
+  return diffChars(summary.value, historyDiffEntry.value.value)
+})
+
+// 履歴の1件をクリックしたら、上書き差分確認ダイアログを開く
+function requestRestoreHistoryEntry(entry: SceneHistoryEntry) {
+  historyDiffEntry.value = entry
+}
+
+function cancelRestoreHistoryEntry() {
+  historyDiffEntry.value = null
+}
+
+// 差分確認ダイアログで「戻す」が押されたら復元を実行する。今の本文が失われないよう、復元前に今の内容もチェックポイントしておく
+function confirmRestoreHistoryEntry() {
+  const entry = historyDiffEntry.value
+  if (!entry) return
 
   clearHistoryTimer()
   checkpointSummaryHistory()
   summary.value = entry.value
+  historyDiffEntry.value = null
 }
 
 // 履歴の日時を「7/12 14:32」のような表記にする
@@ -235,6 +253,7 @@ watch(() => props.isOpen, (newValue) => {
     isStoryEditorOpen.value = false
     isRubyDialogOpen.value = false
     rubySelectionRange = null
+    historyDiffEntry.value = null
   }
 })
 
@@ -383,7 +402,7 @@ function handleCancel() {
               v-model="summary"
               rows="4"
               class="w-full px-3 py-2 pb-8 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
-              placeholder="このシーンで起きることの要約"
+              placeholder="本文や要約を入力"
             ></textarea>
             <!-- 右下:編集専用ページ(フルスクリーン)へ切り替え -->
             <button
@@ -421,7 +440,7 @@ function handleCancel() {
                 type="button"
                 class="w-full text-left px-2 py-1.5 hover:bg-white dark:hover:bg-slate-700 transition-colors"
                 title="クリックしてこの内容に戻す"
-                @click="restoreHistoryEntry(entry)"
+                @click="requestRestoreHistoryEntry(entry)"
               >
                 <span class="text-xs text-slate-400 dark:text-slate-500">{{ formatHistoryTime(entry.savedAt) }}</span>
                 <span class="block text-xs text-slate-600 truncate dark:text-slate-300">{{ entry.value }}</span>
@@ -612,7 +631,7 @@ function handleCancel() {
           v-model="summary"
           autofocus
           class="w-full flex-1 min-h-[50vh] px-4 py-3 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600 leading-7"
-          placeholder="このシーンで起きることの要約"
+          placeholder="本文や要約を入力"
           @keydown.esc="isStoryEditorOpen = false"
         ></textarea>
 
@@ -641,7 +660,7 @@ function handleCancel() {
               type="button"
               class="w-full text-left px-2 py-1.5 hover:bg-white dark:hover:bg-slate-700 transition-colors"
               title="クリックしてこの内容に戻す"
-              @click="restoreHistoryEntry(entry)"
+              @click="requestRestoreHistoryEntry(entry)"
             >
               <span class="text-xs text-slate-400 dark:text-slate-500">{{ formatHistoryTime(entry.savedAt) }}</span>
               <span class="block text-xs text-slate-600 truncate dark:text-slate-300">{{ entry.value }}</span>
@@ -688,6 +707,50 @@ function handleCancel() {
             @click="confirmRuby"
           >
             決定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 履歴の上書き差分確認ダイアログ -->
+    <div
+      v-if="historyDiffEntry"
+      class="fixed inset-0 bg-black/50 flex z-[70] p-4 items-center justify-center dark:bg-black/70"
+      @click.self="cancelRestoreHistoryEntry"
+    >
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col dark:bg-slate-800">
+        <div class="px-6 py-4 border-b border-slate-200 shrink-0 dark:border-slate-700">
+          <h3 class="text-lg font-semibold">{{ formatHistoryTime(historyDiffEntry.savedAt) }}の内容に戻しますか?</h3>
+          <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">
+            今の内容は履歴に保存されます。赤字が消える内容、緑字が戻ってくる内容です。
+          </p>
+        </div>
+        <div class="px-6 py-4 flex-1 overflow-y-auto">
+          <p class="whitespace-pre-wrap break-words text-sm leading-6 text-slate-800 dark:text-slate-200">
+            <span
+              v-for="(part, index) in historyDiffParts"
+              :key="index"
+              :class="{
+                'bg-red-100 text-red-700 line-through dark:bg-red-950/40 dark:text-red-300': part.removed,
+                'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300': part.added,
+              }"
+            >{{ part.value }}</span>
+          </p>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 shrink-0 dark:border-slate-700">
+          <button
+            type="button"
+            class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
+            @click="cancelRestoreHistoryEntry"
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
+            @click="confirmRestoreHistoryEntry"
+          >
+            この内容に戻す
           </button>
         </div>
       </div>
