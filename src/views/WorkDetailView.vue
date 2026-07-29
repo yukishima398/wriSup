@@ -520,6 +520,15 @@ const filteredScenes = computed(() => {
   return scenes.value.filter((s) => s.chapterId === chapterFilter.value)
 })
 
+// 表示中のシーンのストーリー欄合計文字数・平均文字数(「Scenes」の横に出す)
+const summaryCharStats = computed(() => {
+  const total = filteredScenes.value.reduce((sum, s) => sum + s.summary.length, 0)
+  const average = filteredScenes.value.length === 0
+    ? 0
+    : Math.round(total / filteredScenes.value.length)
+  return { total, average }
+})
+
 // 章タブに出す件数(全て/未分類/各章)
 const chapterCounts = computed(() => {
   const counts = new Map<number, number>()
@@ -823,7 +832,12 @@ function isLastChapter(chapter: Chapter): boolean {
     <!-- シーン一覧 -->
     <section>
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <h3 class="text-lg font-semibold">{{ filteredScenes.length }} Scenes</h3>
+      <div class="flex items-baseline gap-2 flex-wrap">
+        <h3 class="text-lg font-semibold">{{ filteredScenes.length }} Scenes</h3>
+        <span class="text-xs text-slate-400 dark:text-slate-500">
+          ストーリー合計 {{ summaryCharStats.total.toLocaleString() }}文字 / 平均 {{ summaryCharStats.average.toLocaleString() }}文字
+        </span>
+      </div>
       <div class="flex items-center gap-2 flex-wrap">
         <button
           type="button"
