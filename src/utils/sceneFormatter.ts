@@ -43,7 +43,7 @@ export function formatScenesAsText(work: Work, scenes: Scene[]): string {
 
     // あらすじ
     if (scene.summary) {
-      lines.push('【あらすじ】')
+      lines.push('【ストーリー】')
       lines.push(scene.summary)
       lines.push('')
     }
@@ -84,7 +84,7 @@ export function formatSceneAsText(scene: Scene): string {
 
     // あらすじ
     if (scene.summary) {
-      lines.push('【あらすじ】')
+      lines.push('【ストーリー】')
       lines.push(scene.summary)
       lines.push('')
     }
