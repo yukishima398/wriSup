@@ -5,6 +5,7 @@ import type { Scene, SceneInput, SceneField, SceneHistoryEntry } from '@/types/s
 import { createEmptySceneField, MAX_SUMMARY_HISTORY } from '@/types/scene'
 import type { Chapter } from '@/types/chapter'
 import { diffChars, type Change } from 'diff'
+import { listScenesByWork, updateScene as updateSceneInDb } from '@/repositories/sceneRepository'
 
 // ストーリー欄の履歴チェックポイントを取るまでの入力停止時間
 const HISTORY_DEBOUNCE_MS = 3000
@@ -27,6 +28,8 @@ const emit = defineEmits<{
   //sceneinputは親コンポーネントにorder以外を要求する
   //ここだけではなく、型を関数の最上流から下流まで一貫させる
   (e: 'submit', input: Omit<SceneInput, 'order'>): void
+  // 一括置換で他のシーン(DB上)を書き換えたとき、親側のシーン一覧を更新してもらうために発火
+  (e: 'scenes-bulk-updated'): void
 }>()
 
 // モード判定
@@ -69,6 +72,13 @@ const rubyBaseText = ref('')
 const rubyReading = ref('')
 // ダイアログを開いた時点の選択範囲(summary文字列内でのインデックス)
 let rubySelectionRange: { start: number; end: number } | null = null
+
+// 一括置換機能
+const isReplaceDialogOpen = ref(false)
+const replaceSearchText = ref('')
+const replaceWithText = ref('')
+// このシーンのみ書き換えるか、作品内の全シーンを書き換えるか(開くたびにデフォルト値に戻す)
+const replaceScope = ref<'scene' | 'all'>('scene')
 
 // 編集専用ページのテキストエリアの選択範囲を取得する。未選択・複数行選択ならアラートを出してnull
 function getStorySelection(): { start: number; end: number; text: string } | null {
@@ -165,6 +175,108 @@ function applyBouten() {
   insertRubyNotation(selection.start, selection.end, selection.text, dots)
 }
 
+// 文字列中に search が何件含まれるか(空文字なら0件扱い)
+function countOccurrences(text: string, search: string): number {
+  if (search === '') return 0
+  return text.split(search).length - 1
+}
+
+// text 中の search を全て replacement に置き換える
+function replaceAllOccurrences(text: string, search: string, replacement: string): string {
+  if (search === '') return text
+  return text.split(search).join(replacement)
+}
+
+// 履歴配列に現在値をチェックポイントとして積んだ新しい配列を返す(checkpointSummaryHistoryのDB版)
+function withCheckpoint(history: SceneHistoryEntry[], currentValue: string): SceneHistoryEntry[] {
+  const value = currentValue.trim()
+  if (value === '') return history
+  if (history[history.length - 1]?.value === value) return history
+
+  const next = [...history, { value, savedAt: new Date() }]
+  if (next.length > MAX_SUMMARY_HISTORY) {
+    next.splice(0, next.length - MAX_SUMMARY_HISTORY)
+  }
+  return next
+}
+
+// 一括置換ダイアログを開く(毎回「このシーンのみ」から始める)
+function openReplaceDialog() {
+  replaceSearchText.value = ''
+  replaceWithText.value = ''
+  replaceScope.value = 'scene'
+  isReplaceDialogOpen.value = true
+}
+
+function cancelReplaceDialog() {
+  isReplaceDialogOpen.value = false
+}
+
+// 一括置換を実行する。対象が「全てのストーリー」の場合、開いている以外のシーンはDBを直接更新する
+async function executeReplace() {
+  const search = replaceSearchText.value
+  if (search === '') {
+    alert('検索する文字列を入力してください')
+    return
+  }
+
+  if (replaceScope.value === 'scene') {
+    const count = countOccurrences(summary.value, search)
+    if (count === 0) {
+      alert('このシーン内には見つかりませんでした')
+      return
+    }
+
+    clearHistoryTimer()
+    checkpointSummaryHistory()
+    summary.value = replaceAllOccurrences(summary.value, search, replaceWithText.value)
+    isReplaceDialogOpen.value = false
+    // alert()はJS実行をブロックするため、先にDOM更新(ダイアログを閉じる)を確定させてから呼ぶ
+    await nextTick()
+    alert(`このシーン内で${count}件を置換しました`)
+    return
+  }
+
+  // 対象:作品内の全ストーリー
+  const currentCount = countOccurrences(summary.value, search)
+  if (currentCount > 0) {
+    clearHistoryTimer()
+    checkpointSummaryHistory()
+    summary.value = replaceAllOccurrences(summary.value, search, replaceWithText.value)
+  }
+
+  const otherScenes = (await listScenesByWork(props.workId)).filter(
+    (s) => s.id !== props.editingScene?.id
+  )
+
+  let updatedSceneCount = currentCount > 0 ? 1 : 0
+  let totalCount = currentCount
+
+  for (const scene of otherScenes) {
+    const count = countOccurrences(scene.summary, search)
+    if (count === 0) continue
+
+    await updateSceneInDb({
+      id: scene.id!,
+      summary: replaceAllOccurrences(scene.summary, search, replaceWithText.value),
+      summaryHistory: withCheckpoint(scene.summaryHistory, scene.summary),
+    })
+    updatedSceneCount++
+    totalCount += count
+  }
+
+  isReplaceDialogOpen.value = false
+  await nextTick()
+
+  if (updatedSceneCount === 0) {
+    alert('見つかりませんでした')
+    return
+  }
+
+  emit('scenes-bulk-updated')
+  alert(`${updatedSceneCount}件のシーンで、合計${totalCount}件を置換しました`)
+}
+
 // 現在のストーリー本文を履歴に積む(直前のチェックポイントと同じなら何もしない)
 function checkpointSummaryHistory() {
   const value = summary.value.trim()
@@ -254,6 +366,7 @@ watch(() => props.isOpen, (newValue) => {
     isRubyDialogOpen.value = false
     rubySelectionRange = null
     historyDiffEntry.value = null
+    isReplaceDialogOpen.value = false
   }
 })
 
@@ -577,7 +690,10 @@ function handleCancel() {
     >
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0 dark:border-slate-700">
         <div class="min-w-0">
-          <h3 class="text-lg font-semibold">ストーリー編集</h3>
+          <div class="flex items-baseline gap-2 min-w-0">
+            <h3 class="text-lg font-semibold shrink-0">ストーリー編集</h3>
+            <p class="text-sm text-slate-500 truncate dark:text-slate-400">{{ title || '無題' }}</p>
+          </div>
           <div class="flex items-center gap-2 min-w-0">
             <button
               type="button"
@@ -611,7 +727,14 @@ function handleCancel() {
             >
               ――
             </button>
-            <p class="text-sm text-slate-500 truncate dark:text-slate-400">{{ title || '無題' }}</p>
+            <button
+              type="button"
+              class="px-3 py-1 text-xs text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors shrink-0 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
+              title="文字列を検索して置き換える"
+              @click="openReplaceDialog"
+            >
+              一括置換
+            </button>
           </div>
         </div>
         <div class="flex items-center gap-3 shrink-0">
@@ -707,6 +830,75 @@ function handleCancel() {
             @click="confirmRuby"
           >
             決定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一括置換ダイアログ -->
+    <div
+      v-if="isReplaceDialogOpen"
+      class="fixed inset-0 bg-black/50 flex z-[70] p-4 items-center justify-center dark:bg-black/70"
+      @click.self="cancelReplaceDialog"
+    >
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-sm flex flex-col dark:bg-slate-800">
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 class="text-lg font-semibold">ストーリーを一括置換</h3>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+              検索する文字列
+            </label>
+            <input
+              v-model="replaceSearchText"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
+              placeholder="例:主人公"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+              置換後の文字列
+            </label>
+            <input
+              v-model="replaceWithText"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
+              placeholder="例:ハルト(空にすると削除)"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+              対象範囲
+            </label>
+            <div class="flex flex-col gap-1">
+              <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <input v-model="replaceScope" type="radio" value="scene" />
+                このシーンのみ
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <input v-model="replaceScope" type="radio" value="all" />
+                作品内の全てのストーリー
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+          <button
+            type="button"
+            class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
+            @click="cancelReplaceDialog"
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="!replaceSearchText"
+            @click="executeReplace"
+          >
+            置換実行
           </button>
         </div>
       </div>

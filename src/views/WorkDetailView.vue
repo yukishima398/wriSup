@@ -835,7 +835,7 @@ function isLastChapter(chapter: Chapter): boolean {
       <div class="flex items-baseline gap-2 flex-wrap">
         <h3 class="text-lg font-semibold">{{ filteredScenes.length }} Scenes</h3>
         <span class="text-xs text-slate-400 dark:text-slate-500">
-          ストーリー合計 {{ summaryCharStats.total.toLocaleString() }}文字 / 平均 {{ summaryCharStats.average.toLocaleString() }}文字
+          合計 {{ summaryCharStats.total.toLocaleString() }}文字 / 平均 {{ summaryCharStats.average.toLocaleString() }}文字
         </span>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
@@ -1387,6 +1387,7 @@ function isLastChapter(chapter: Chapter): boolean {
         :default-chapter-id="defaultChapterIdForNewScene"
         @close="closeSceneDialog"
         @submit="handleSceneSubmit"
+        @scenes-bulk-updated="refreshScenes"
       />
       <!-- 章追加・編集ダイアログ -->
       <ChapterFormDialog
