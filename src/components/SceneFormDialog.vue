@@ -139,6 +139,11 @@ function insertDash() {
   insertAtCursor('――')
 }
 
+// 区切り線(―×16)をカーソル位置に、前後に改行を挟んで挿入する
+function insertDivider() {
+  insertAtCursor(`\n${'―'.repeat(16)}\n`)
+}
+
 // 選択中の文字列に対してルビ入力ダイアログを開く
 function openRubyDialog() {
   const selection = getStorySelection()
@@ -726,6 +731,14 @@ function handleCancel() {
               @click="insertDash"
             >
               ――
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1 text-xs text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors shrink-0 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-950/40"
+              title="カーソル位置に区切り線(―×16)を挿入する"
+              @click="insertDivider"
+            >
+              区切り線
             </button>
             <button
               type="button"
