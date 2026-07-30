@@ -36,6 +36,7 @@ import ForeshadowFormDialog from '@/components/ForeshadowFormDialog.vue'
 import ChapterFormDialog from '@/components/ChapterFormDialog.vue'
 import ChapterManagerDialog from '@/components/ChapterManagerDialog.vue'
 import SceneExportDialog from '@/components/SceneExportDialog.vue'
+import SceneCopyRangeDialog from '@/components/SceneCopyRangeDialog.vue'
 import {
   FORESHADOW_STATUS_LABELS,
   FORESHADOW_STATUS_COLORS,
@@ -417,19 +418,39 @@ function goToCharacterDetail(character: Character) {
 // コピー状態管理(UIフィードバック用)
 const copyState = ref<'idle' | 'success' | 'error'>('idle')
 
-// シーンをテキストとしてコピー
-async function copyScenesToClipboard() {
-  if (!work.value) return
+// シーン選択コピーダイアログの状態
+const isSceneCopyDialogOpen = ref(false)
 
+function openSceneCopyDialog() {
   if (scenes.value.length === 0) {
     alert('コピーするシーンがありません')
     return
   }
+  isSceneCopyDialogOpen.value = true
+}
+
+function closeSceneCopyDialog() {
+  isSceneCopyDialogOpen.value = false
+}
+
+// ダイアログで選択された範囲をテキストとしてコピーする
+async function handleSceneRangeCopy(payload: { startId: number; endId: number; titleAndSummaryOnly: boolean }) {
+  if (!work.value) return
+
+  const startIndex = scenes.value.findIndex((s) => s.id === payload.startId)
+  const endIndex = scenes.value.findIndex((s) => s.id === payload.endId)
+  if (startIndex === -1 || endIndex === -1) return
+
+  const [from, to] = startIndex <= endIndex ? [startIndex, endIndex] : [endIndex, startIndex]
+  const targetScenes = scenes.value.slice(from, to + 1)
 
   try {
-    const text = formatScenesAsText(work.value, scenes.value)
+    const text = formatScenesAsText(work.value, targetScenes, {
+      titleAndSummaryOnly: payload.titleAndSummaryOnly,
+    })
     await navigator.clipboard.writeText(text)
     copyState.value = 'success'
+    isSceneCopyDialogOpen.value = false
 
     // 2秒後に元に戻す
     setTimeout(() => {
@@ -466,7 +487,7 @@ const copyButtonLabel = computed(() => {
   switch (copyState.value) {
     case 'success': return '✅ コピーしました'
     case 'error': return '❌ コピー失敗'
-    default: return '全シーンコピー'
+    default: return 'シーン選択コピー'
   }
 })
 
@@ -848,7 +869,7 @@ function isLastChapter(chapter: Chapter): boolean {
               ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
           :disabled="scenes.length === 0"
-          @click="copyScenesToClipboard"
+          @click="openSceneCopyDialog"
         >
           {{ copyButtonLabel }}
         </button>
@@ -858,7 +879,7 @@ function isLastChapter(chapter: Chapter): boolean {
           :disabled="scenes.length === 0"
           @click="openSceneExportDialog"
         >
-          テキスト変換
+          ローカルDL
         </button>
         <button
           type="button"
@@ -1411,6 +1432,13 @@ function isLastChapter(chapter: Chapter): boolean {
         :work="work"
         :scenes="scenes"
         @close="closeSceneExportDialog"
+      />
+      <!-- シーン選択コピーダイアログ -->
+      <SceneCopyRangeDialog
+        :is-open="isSceneCopyDialogOpen"
+        :scenes="scenes"
+        @close="closeSceneCopyDialog"
+        @copy="handleSceneRangeCopy"
       />
       <!-- 伏線追加・編集ダイアログ -->
       <ForeshadowFormDialog

@@ -6,10 +6,26 @@ import type { Scene } from '@/types/scene'
  *
  * @param work 作品
  * @param scenes シーン配列(order 順)
+ * @param options.titleAndSummaryOnly trueなら、シーン名とストーリーのみの簡易形式にする
  * @returns 整形されたテキスト
  */
-export function formatScenesAsText(work: Work, scenes: Scene[]): string {
+export function formatScenesAsText(
+  work: Work,
+  scenes: Scene[],
+  options?: { titleAndSummaryOnly?: boolean }
+): string {
   const lines: string[] = []
+
+  if (options?.titleAndSummaryOnly) {
+    for (const scene of scenes) {
+      lines.push(`#${scene.order} ${scene.title || '無題'}`)
+      if (scene.summary) {
+        lines.push(scene.summary)
+      }
+      lines.push('')
+    }
+    return lines.join('\n')
+  }
 
   // 作品ヘッダー
   lines.push(`=== ${work.title} ===`)
