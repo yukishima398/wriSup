@@ -21,6 +21,10 @@ https://wso.pages.dev/
 魅力的で一貫したキャラクターを作れる
 ![alt text](images/readme3.png)
 
+## 執筆専用ページ
+本格的な執筆に打ち込める
+![alt text](images/readme4.png)
+
 ##  機能一覧
 - 複数の作品、それぞれのシーンやキャラクターを登録・管理
 - 作品ごとに「ゴール」「テーマ」を設定
