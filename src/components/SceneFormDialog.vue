@@ -1,11 +1,12 @@
 <script setup lang="ts">
 //編集画面
-import { ref, watch, computed, toRaw, onUnmounted, nextTick } from 'vue'
+import { ref, watch, computed, toRaw, toRef, onUnmounted, nextTick } from 'vue'
 import type { Scene, SceneInput, SceneField, SceneHistoryEntry } from '@/types/scene'
 import { createEmptySceneField, MAX_SUMMARY_HISTORY } from '@/types/scene'
 import type { Chapter } from '@/types/chapter'
 import { diffChars, type Change } from 'diff'
 import { listScenesByWork, updateScene as updateSceneInDb } from '@/repositories/sceneRepository'
+import { useProperNouns, type ProperNoun } from '@/composables/useProperNouns'
 
 // ストーリー欄の履歴チェックポイントを取るまでの入力停止時間
 const HISTORY_DEBOUNCE_MS = 3000
@@ -142,6 +143,47 @@ function insertDash() {
 // 区切り線(―×16)をカーソル位置に、前後に改行を挟んで挿入する
 function insertDivider() {
   insertAtCursor(`\n${'―'.repeat(16)}\n`)
+}
+
+// 固有名詞ボタン:押すとボタンに結びつけた語句(ルビがあれば｜名前《ルビ》)をカーソル位置に挿入する
+const { properNouns, addProperNoun, removeProperNoun } = useProperNouns(toRef(props, 'workId'))
+const isProperNounDialogOpen = ref(false)
+const properNounName = ref('')
+const properNounReading = ref('')
+const properNounNameInputRef = ref<HTMLInputElement | null>(null)
+
+function insertProperNoun(noun: ProperNoun) {
+  insertAtCursor(noun.reading ? `｜${noun.name}《${noun.reading}》` : noun.name)
+}
+
+function openProperNounDialog() {
+  properNounName.value = ''
+  properNounReading.value = ''
+  isProperNounDialogOpen.value = true
+  nextTick(() => properNounNameInputRef.value?.focus())
+}
+
+function cancelProperNounDialog() {
+  isProperNounDialogOpen.value = false
+}
+
+function confirmProperNoun() {
+  const name = properNounName.value.trim()
+  if (!name) return
+
+  addProperNoun(name, properNounReading.value.trim())
+  isProperNounDialogOpen.value = false
+}
+
+// 日本語変換の確定Enterでは追加しない
+function onProperNounEnter(e: KeyboardEvent) {
+  if (e.isComposing) return
+  confirmProperNoun()
+}
+
+function confirmRemoveProperNoun(noun: ProperNoun) {
+  if (!window.confirm(`「${noun.name}」のボタンを削除しますか?`)) return
+  removeProperNoun(noun.id)
 }
 
 // 選択中の文字列に対してルビ入力ダイアログを開く
@@ -372,6 +414,7 @@ watch(() => props.isOpen, (newValue) => {
     rubySelectionRange = null
     historyDiffEntry.value = null
     isReplaceDialogOpen.value = false
+    isProperNounDialogOpen.value = false
   }
 })
 
@@ -749,6 +792,39 @@ function handleCancel() {
               一括置換
             </button>
           </div>
+          <!-- 固有名詞ボタン(作品ごとに登録)。押すたびに登録した語句を挿入する -->
+          <div class="flex flex-wrap items-center gap-2 mt-2 min-w-0">
+            <div
+              v-for="noun in properNouns"
+              :key="noun.id"
+              class="flex items-stretch border border-sky-300 rounded-md overflow-hidden text-xs text-sky-700 dark:text-sky-300 dark:border-sky-700"
+            >
+              <button
+                type="button"
+                class="px-3 py-1 hover:bg-sky-50 transition-colors dark:hover:bg-sky-950/40"
+                :title="noun.reading ? `カーソル位置に「${noun.name}(${noun.reading})」を挿入する` : `カーソル位置に「${noun.name}」を挿入する`"
+                @click="insertProperNoun(noun)"
+              >
+                {{ noun.name }}
+              </button>
+              <button
+                type="button"
+                class="px-1.5 border-l border-sky-300 text-sky-400 hover:bg-sky-50 hover:text-red-600 transition-colors dark:border-sky-700 dark:hover:bg-sky-950/40"
+                title="このボタンを削除する"
+                @click="confirmRemoveProperNoun(noun)"
+              >
+                ×
+              </button>
+            </div>
+            <button
+              type="button"
+              class="px-3 py-1 text-xs text-slate-600 border border-dashed border-slate-300 rounded-md hover:bg-slate-50 transition-colors shrink-0 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-800"
+              title="よく使う固有名詞を挿入ボタンとして登録する"
+              @click="openProperNounDialog"
+            >
+              + 固有名詞を追加
+            </button>
+          </div>
         </div>
         <div class="flex items-center gap-3 shrink-0">
           <span class="text-xs text-slate-400 dark:text-slate-500">{{ summary.length }}文字</span>
@@ -843,6 +919,67 @@ function handleCancel() {
             @click="confirmRuby"
           >
             決定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 固有名詞追加ダイアログ -->
+    <div
+      v-if="isProperNounDialogOpen"
+      class="fixed inset-0 bg-black/50 flex z-[70] p-4 items-center justify-center dark:bg-black/70"
+      @click.self="cancelProperNounDialog"
+    >
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-sm flex flex-col dark:bg-slate-800">
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 class="text-lg font-semibold">固有名詞を追加</h3>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+              固有名詞 <span class="text-red-500">*</span>
+            </label>
+            <input
+              ref="properNounNameInputRef"
+              v-model="properNounName"
+              type="text"
+              required
+              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
+              placeholder="例:東雲"
+              @keydown.enter="onProperNounEnter"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">
+              ルビ(任意)
+            </label>
+            <input
+              v-model="properNounReading"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
+              placeholder="例:しののめ"
+              @keydown.enter="onProperNounEnter"
+            />
+            <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">
+              入力すると｜名前《ルビ》の形で挿入されます
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+          <button
+            type="button"
+            class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
+            @click="cancelProperNounDialog"
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="!properNounName.trim()"
+            @click="confirmProperNoun"
+          >
+            追加
           </button>
         </div>
       </div>

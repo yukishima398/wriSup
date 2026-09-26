@@ -152,6 +152,14 @@ async function handleRestoreFileSelected(event: Event) {
           @change="handleRestoreFileSelected"
         />
         <div class="my-1 border-t border-slate-200 dark:border-slate-700"></div>
+        <!-- 静的ページ(public/about/index.html)なのでルーターを通さず通常のリンクで遷移する -->
+        <a
+          href="/about/"
+          class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors dark:text-slate-200 dark:hover:bg-slate-700"
+          @click="closeMenu"
+        >
+          機能紹介・使い方
+        </a>
         <a
           href="https://marshmallow-qa.com/daj45kzxgeoynsa?t=YQrsmm&utm_medium=url_text&utm_source=promotion"
           target="_blank"

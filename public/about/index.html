@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/bel.png" />
+    <link rel="apple-touch-icon" href="/bel.png" />
+    <title>機能紹介・使い方｜さっかのアメ 無料の小説執筆ツール（プロット・伏線・キャラ設定管理）</title>
+    <meta name="description" content="無料の小説執筆ツール「さっかのアメ」の機能紹介と使い方。章・シーンのプロット管理、キャラクター設定と登場シーンの一覧、伏線の可視化、ルビ・傍点の入力補助、なろう・カクヨム・ハーメルン・pixiv向けの書き出しまで、登録不要でブラウザからすぐ使えます。" />
+    <meta name="keywords" content="小説執筆ツール 使い方,小説 執筆アプリ,プロット作成,プロット管理,伏線管理,キャラクター設定,設定資料,シーン管理,章管理,時系列,ルビ,傍点,小説家になろう,カクヨム,ハーメルン,pixiv,Web小説,無料,登録不要" />
+    <meta name="author" content="さっかのアメ" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href="https://wri-sup.pages.dev/about/" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:site_name" content="さっかのアメ" />
+    <meta property="og:title" content="機能紹介・使い方｜さっかのアメ 無料の小説執筆ツール" />
+    <meta property="og:description" content="プロット・キャラクター設定・伏線・時系列をまとめて管理できる無料の小説執筆ツール「さっかのアメ」の機能と使い方を紹介します。" />
+    <meta property="og:url" content="https://wri-sup.pages.dev/about/" />
+    <meta property="og:image" content="https://wri-sup.pages.dev/ogp.jpg" />
+    <meta property="og:image:alt" content="さっかのアメ - Web小説執筆支援ツール" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="機能紹介・使い方｜さっかのアメ 無料の小説執筆ツール" />
+    <meta name="twitter:description" content="プロット・キャラクター設定・伏線・時系列をまとめて管理できる無料の小説執筆ツール「さっかのアメ」の機能と使い方を紹介します。" />
+    <meta name="twitter:image" content="https://wri-sup.pages.dev/ogp.jpg" />
+    <meta name="twitter:image:alt" content="さっかのアメ - Web小説執筆支援ツール" />
+
+    <script type="application/ld+json">
+      [
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "さっかのアメ", "item": "https://wri-sup.pages.dev/" },
+            { "@type": "ListItem", "position": 2, "name": "機能紹介・使い方", "item": "https://wri-sup.pages.dev/about/" }
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "料金はかかりますか？",
+              "acceptedAnswer": { "@type": "Answer", "text": "すべての機能を無料で使えます。広告も表示されません。" }
+            },
+            {
+              "@type": "Question",
+              "name": "会員登録やアプリのダウンロードは必要ですか？",
+              "acceptedAnswer": { "@type": "Answer", "text": "どちらも不要です。ブラウザでページを開けばすぐに使い始められます。" }
+            },
+            {
+              "@type": "Question",
+              "name": "書いた小説のデータはどこに保存されますか？",
+              "acceptedAnswer": { "@type": "Answer", "text": "お使いのブラウザの中（IndexedDB）に保存され、サーバーには送信されません。作品がAIの学習に使われる心配もありません。" }
+            },
+            {
+              "@type": "Question",
+              "name": "データのバックアップや別の端末への移行はできますか？",
+              "acceptedAnswer": { "@type": "Answer", "text": "メニューの「バックアップファイルをDL」で全データをファイルに保存し、「復元」で読み込めます。ブラウザのデータを消去する前や、別の端末に移すときにご利用ください。" }
+            },
+            {
+              "@type": "Question",
+              "name": "小説投稿サイトに投稿できますか？",
+              "acceptedAnswer": { "@type": "Answer", "text": "シーンを1話ずつ、小説家になろう・カクヨム・ハーメルン・pixiv向けにテキスト（txt）またはPDFで書き出せます。pixiv向けにはルビ記法も自動で変換します。" }
+            }
+          ]
+        }
+      ]
+    </script>
+
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --accent: #047857;
+        --accent-hover: #065f46;
+        --accent-soft: #ecfdf5;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f172a;
+          --surface: #1e293b;
+          --text: #e2e8f0;
+          --muted: #94a3b8;
+          --border: #334155;
+          --accent: #34d399;
+          --accent-hover: #6ee7b7;
+          --accent-soft: #064e3b;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.8;
+      }
+      a { color: var(--accent); }
+      header, main, footer { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+      header { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; padding-bottom: 16px; }
+      header .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); text-decoration: none; }
+      header .brand img { width: 32px; height: 32px; }
+      .hero { padding: 40px 0 24px; }
+      .hero h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.4; margin: 0 0 16px; }
+      .hero p { color: var(--muted); margin: 0 0 24px; }
+      .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+      .tags li { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 2px 12px; font-size: 0.9rem; font-weight: 600; }
+      .cta {
+        display: inline-block; background: var(--accent); color: #fff; text-decoration: none;
+        padding: 10px 24px; border-radius: 8px; font-weight: 700;
+      }
+      @media (prefers-color-scheme: dark) { .cta { color: #022c22; } }
+      .cta:hover { background: var(--accent-hover); }
+      section { margin: 48px 0; }
+      h2 { font-size: 1.4rem; border-left: 4px solid var(--accent); padding-left: 12px; margin: 0 0 20px; }
+      h3 { font-size: 1.1rem; margin: 0 0 8px; }
+      .feature { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+      .feature p { margin: 0 0 12px; }
+      .feature img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; display: block; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+      .grid .feature { margin: 0; }
+      ol.steps { padding-left: 1.4em; }
+      ol.steps li { margin-bottom: 12px; }
+      dl.faq dt { font-weight: 700; margin-top: 16px; }
+      dl.faq dd { margin: 4px 0 0; color: var(--muted); }
+      footer { border-top: 1px solid var(--border); padding-top: 16px; padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
+      footer nav { display: flex; flex-wrap: wrap; gap: 16px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/"><img src="/bel.png" alt="" width="32" height="32" />さっかのアメ</a>
+      <a href="/">ツールを開く</a>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1>さっかのアメ：プロット・伏線・キャラ設定をまとめて管理できる無料の小説執筆ツール</h1>
+        <p>
+          「さっかのアメ」は、Web小説を書く人のための執筆支援ツールです。
+          作品・章・シーンのプロット、キャラクター設定、伏線、時系列をひとつの画面で管理できるので、
+          設定が増えても矛盾に悩まされず、長編連載でもエタらずに完結まで書き進められます。
+        </p>
+        <ul class="tags">
+          <li>完全無料</li>
+          <li>広告なし</li>
+          <li>会員登録不要</li>
+          <li>ダウンロード不要</li>
+          <li>データはブラウザ内に保存</li>
+        </ul>
+        <a class="cta" href="/">無料で書きはじめる</a>
+      </div>
+
+      <section>
+        <h2>主な機能</h2>
+
+        <article class="feature">
+          <h3>章・シーンでプロットを管理</h3>
+          <p>
+            シーンごとにタイトル・時期・ストーリーを書き、登場キャラクターを登録できます。
+            シーンの並び替え、章の追加や並び替え、「次話」の挿入も簡単。複雑なストーリーの流れを1ページで見渡せます。
+            作品ごとに「ゴール」と「テーマ」を決めておけば、話がぶれることもありません。
+          </p>
+          <img src="/about/scenes.png" width="1400" height="599" loading="lazy" alt="シーン一覧の画面。シーンのあらすじと登場キャラクター、キャラクターごとの行動が表示されている" />
+        </article>
+
+        <article class="feature">
+          <h3>伏線を可視化</h3>
+          <p>
+            伏線ごとに「張ったシーン」と「回収予定シーン」を登録し、「構想中」「張り済み」「回収済み」の状態で絞り込んで管理できます。
+            「あの伏線、回収し忘れていないか？」「時系列が食い違っていないか？」と悩む必要はもうありません。
+          </p>
+          <img src="/about/foreshadow.png" width="1400" height="411" loading="lazy" alt="伏線一覧の画面。構想中・張り済み・回収済みで絞り込めて、伏線を張ったシーンと回収予定のシーンが表示されている" />
+        </article>
+
+        <article class="feature">
+          <h3>キャラクター設定と登場シーンの一覧</h3>
+          <p>
+            キャラクターのプロフィールを登録すると、そのキャラが登場するシーンと各シーンでの行動がまとめて表示されます。
+            行動の矛盾やキャラのブレにすぐ気づけるので、魅力的で一貫したキャラクターを描けます。
+          </p>
+          <img src="/about/character.png" width="1400" height="1013" loading="lazy" alt="キャラクター詳細の画面。プロフィールと登場シーンごとの行動が一覧になっている" />
+        </article>
+
+        <article class="feature">
+          <h3>執筆に集中できる編集ページ</h3>
+          <p>
+            ルビ・傍点・三点リーダー（……）・ダッシュ（――）・区切り線をボタンひとつで入力できます。
+            文字数カウント、ストーリーの一括置換、変更履歴と差分表示にも対応しています。
+          </p>
+          <img src="/about/editor.png" width="1098" height="484" loading="lazy" alt="ストーリー編集画面。ルビ・傍点・三点リーダー・ダッシュ・一括置換のボタンと本文入力欄" />
+        </article>
+
+        <div class="grid">
+          <article class="feature">
+            <h3>投稿サイト向けの書き出し</h3>
+            <p>シーンを1話ずつ、小説家になろう・カクヨム・ハーメルン・pixiv向けに txt / PDF で書き出せます。pixivのルビ記法にも自動で変換します。</p>
+          </article>
+          <article class="feature">
+            <h3>シーンを選んでコピー</h3>
+            <p>好きな範囲のシーンを選んで、本文をテキストとしてクリップボードにコピーできます。</p>
+          </article>
+          <article class="feature">
+            <h3>複数作品を管理</h3>
+            <p>作品はいくつでも登録でき、サムネイル画像も設定できます。</p>
+          </article>
+          <article class="feature">
+            <h3>バックアップ・復元</h3>
+            <p>全データをファイルに保存して、いつでも復元できます。別の端末への移行にも使えます。</p>
+          </article>
+          <article class="feature">
+            <h3>ダークモード</h3>
+            <p>夜の執筆でも目にやさしいダークモードに切り替えられます。</p>
+          </article>
+          <article class="feature">
+            <h3>AIに学習されない</h3>
+            <p>データはブラウザの中だけに保存され、サーバーには送信されません。</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>使い方</h2>
+        <ol class="steps">
+          <li><strong>作品を作る</strong>：トップページの「+ 新規作品」から、タイトル・ゴール・テーマを入力します。</li>
+          <li><strong>キャラクターを登録する</strong>：作品ページの「+ 新規キャラ」から、登場人物のプロフィールを登録します。</li>
+          <li><strong>シーンでプロットを組む</strong>：「+ 新規シーン」でシーンを追加し、ストーリーと登場キャラクター、各キャラの行動を書きます。「章を編集」で章に分けて整理できます。</li>
+          <li><strong>伏線を登録する</strong>：「+ 新規伏線」で、伏線を張るシーンと回収するシーンを指定します。</li>
+          <li><strong>本文を書く・書き出す</strong>：「ストーリー編集」で本文を書き、完成したら投稿サイト向けに書き出すか、コピーして投稿します。</li>
+        </ol>
+        <p><a class="cta" href="/">さっそく使ってみる</a></p>
+      </section>
+
+      <section>
+        <h2>よくある質問</h2>
+        <dl class="faq">
+          <dt>料金はかかりますか？</dt>
+          <dd>すべての機能を無料で使えます。広告も表示されません。</dd>
+          <dt>会員登録やアプリのダウンロードは必要ですか？</dt>
+          <dd>どちらも不要です。ブラウザでページを開けばすぐに使い始められます。</dd>
+          <dt>書いた小説のデータはどこに保存されますか？</dt>
+          <dd>お使いのブラウザの中（IndexedDB）に保存され、サーバーには送信されません。作品がAIの学習に使われる心配もありません。</dd>
+          <dt>データのバックアップや別の端末への移行はできますか？</dt>
+          <dd>メニューの「バックアップファイルをDL」で全データをファイルに保存し、「復元」で読み込めます。ブラウザのデータを消去する前や、別の端末に移すときにご利用ください。</dd>
+          <dt>小説投稿サイトに投稿できますか？</dt>
+          <dd>シーンを1話ずつ、小説家になろう・カクヨム・ハーメルン・pixiv向けにテキスト（txt）またはPDFで書き出せます。pixiv向けにはルビ記法も自動で変換します。</dd>
+        </dl>
+      </section>
+    </main>
+
+    <footer>
+      <nav>
+        <a href="/">さっかのアメ（ツールを開く）</a>
+        <a href="https://x.com/wrisupEX" target="_blank" rel="noopener noreferrer">X（旧Twitter）</a>
+        <a href="https://marshmallow-qa.com/daj45kzxgeoynsa?t=YQrsmm&amp;utm_medium=url_text&amp;utm_source=promotion" target="_blank" rel="noopener noreferrer">マシュマロで意見を送る</a>
+      </nav>
+    </footer>
+  </body>
+</html>
