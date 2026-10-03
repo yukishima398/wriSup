@@ -66,6 +66,20 @@ let historyTimer: ReturnType<typeof setTimeout> | undefined
 
 // ルビ機能:編集専用ページのテキストエリア本体への参照(選択範囲の取得・書き換えに使う)
 const storyTextareaRef = ref<HTMLTextAreaElement | null>(null)
+// 編集専用ページのテキストエリアで選択中の文字数(未選択なら0)
+const storySelectionLength = ref(0)
+
+function updateStorySelectionLength() {
+  const el = storyTextareaRef.value
+  storySelectionLength.value = el ? el.selectionEnd - el.selectionStart : 0
+}
+// テキストエリア内の選択範囲の変化はdocumentのselectionchangeで拾う
+document.addEventListener('selectionchange', updateStorySelectionLength)
+onUnmounted(() => document.removeEventListener('selectionchange', updateStorySelectionLength))
+// 開き直したときに前回の選択文字数が残らないようにする
+watch(isStoryEditorOpen, () => {
+  storySelectionLength.value = 0
+})
 const isRubyDialogOpen = ref(false)
 // ルビを振る対象として選択された文字列(ダイアログ内では読み取り専用表示)
 const rubyBaseText = ref('')
@@ -827,7 +841,9 @@ function handleCancel() {
           </div>
         </div>
         <div class="flex items-center gap-3 shrink-0">
-          <span class="text-xs text-slate-400 dark:text-slate-500">{{ summary.length }}文字</span>
+          <span class="text-xs text-slate-400 dark:text-slate-500">
+            {{ summary.length }}文字<template v-if="storySelectionLength > 0">({{ storySelectionLength }}文字)</template>
+          </span>
           <button
             type="button"
             class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
