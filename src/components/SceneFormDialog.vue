@@ -528,7 +528,7 @@ function handleCancel() {
             v-model="title"
             type="text"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
-            placeholder="例:主人公、覚醒する"
+            placeholder="タイトルを入力......"
           />
         </div>
 
@@ -560,7 +560,7 @@ function handleCancel() {
             placeholder="例:3月15日 14:00"
           />
           <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">
-            「帝国暦2000/1/1」など、時系列を整理する必要がある場合
+            「2000/1/1」など、時系列を整理する必要がある場合
           </p>
         </div>
 
@@ -840,13 +840,14 @@ function handleCancel() {
             </button>
           </div>
         </div>
-        <div class="flex items-center gap-3 shrink-0">
-          <span class="text-xs text-slate-400 dark:text-slate-500">
+        <!-- 文字数表示は左のボタン群に重なることがあるので、クリックを下に透過させる(閉じるボタンのみ有効) -->
+        <div class="flex items-center gap-3 shrink-0 pointer-events-none">
+          <span class="text-xs text-slate-400 dark:text-slate-500 select-none">
             {{ summary.length }}文字<template v-if="storySelectionLength > 0">({{ storySelectionLength }}文字)</template>
           </span>
           <button
             type="button"
-            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
+            class="pointer-events-auto px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
             @click="isStoryEditorOpen = false"
           >
             閉じる

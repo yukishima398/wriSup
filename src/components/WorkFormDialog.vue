@@ -185,7 +185,7 @@ function handleCancel() {
             v-model="goal"
             rows="2"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
-            placeholder="最悪ここに着地させよう。例:主人公がAランクになる"
+            placeholder=""
           ></textarea>
         </div>
 
@@ -197,7 +197,7 @@ function handleCancel() {
             v-model="theme"
             rows="2"
             class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
-            placeholder="作品を通じて描きたい主題。例:成長と父性愛"
+            placeholder=""
           ></textarea>
         </div>
       </div>
@@ -213,7 +213,8 @@ function handleCancel() {
         </button>
         <button
           type="button"
-          class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors"
+          class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed dark:disabled:bg-slate-600 dark:disabled:text-slate-400"
+          :disabled="!title.trim()"
           @click="handleSubmit"
         >
           {{ submitLabel }}

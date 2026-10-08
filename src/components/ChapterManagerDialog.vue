@@ -289,8 +289,8 @@ function handleClose() {
             />
             <button
               type="button"
-              class="px-3 py-2 text-sm bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:opacity-50 shrink-0"
-              :disabled="isSaving"
+              class="px-3 py-2 text-sm bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed dark:disabled:bg-slate-600 dark:disabled:text-slate-400 shrink-0"
+              :disabled="isSaving || !newTitle.trim()"
               @click="handleCreate"
             >
               + 新規章
