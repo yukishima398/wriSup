@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWork } from '@/repositories/workRepository'
 import {
@@ -559,7 +559,36 @@ const defaultChapterIdForNewScene = computed(() =>
   (typeof chapterFilter.value === 'number' ? chapterFilter.value : undefined)
 )
 
-onMounted(fetchAll)
+// 検索画面から開いたとき、該当のシーン・伏線までスクロールして一時的に強調する(章は絞り込みを切り替える)
+const focusedElementId = ref<string | null>(null)
+
+async function focusFromQuery() {
+  const chapterId = Number(route.query.chapter)
+  if (chapters.value.some((c) => c.id === chapterId)) {
+    chapterFilter.value = chapterId
+  }
+
+  const elementId = route.query.scene
+    ? `scene-${route.query.scene}`
+    : route.query.foreshadow
+      ? `foreshadow-${route.query.foreshadow}`
+      : null
+  if (!elementId) return
+
+  await nextTick()
+  const el = document.getElementById(elementId)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  focusedElementId.value = elementId
+  setTimeout(() => {
+    focusedElementId.value = null
+  }, 2000)
+}
+
+onMounted(async () => {
+  await fetchAll()
+  await focusFromQuery()
+})
 
 // 一覧に戻る
 function goBack() {
@@ -836,8 +865,10 @@ function closeSceneExportDialog() {
         <TransitionGroup v-else tag="div" name="scene-list" class="space-y-2">
           <article
             v-for="scene in filteredScenes"
+            :id="`scene-${scene.id}`"
             :key="scene.id"
             class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700"
+            :class="{ 'ring-2 ring-amber-400': focusedElementId === `scene-${scene.id}` }"
           >
             <!-- ヘッダー部分:番号 + タイトル + 時系列 -->
             <div class="mb-3">
@@ -1093,8 +1124,10 @@ function closeSceneExportDialog() {
         <div v-else class="space-y-1.5">
           <article
             v-for="foreshadow in filteredForeshadows"
+            :id="`foreshadow-${foreshadow.id}`"
             :key="foreshadow.id"
             class="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700"
+            :class="{ 'ring-2 ring-amber-400': focusedElementId === `foreshadow-${foreshadow.id}` }"
           >
             <!-- タイトル + ステータスバッジ + ボタン -->
             <div class="flex items-start justify-between gap-2 mb-2">

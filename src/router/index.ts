@@ -4,6 +4,7 @@ import HomeView from '@/views/HomeView.vue'
 //自作したコンポーネントのインポート。@はルートディレクトリ
 import WorkDetailView from '@/views/WorkDetailView.vue'
 import CharacterDetailView from '@/views/CharacterDetailView.vue'
+import SearchView from '@/views/SearchView.vue'
 
 const router = createRouter({
   //URLが切り替わってもページ全体のリロード（再読み込み）が発生しないように制御する
@@ -29,6 +30,11 @@ const router = createRouter({
       name: 'character-detail',
       component: CharacterDetailView,
       props: true,
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: SearchView,
     },
   ],
 })

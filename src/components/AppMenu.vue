@@ -121,6 +121,14 @@ async function handleRestoreFileSelected(event: Event) {
         class="fixed w-48 bg-white rounded-lg border border-slate-200 shadow-lg py-1 z-50 dark:bg-slate-800 dark:border-slate-700"
         :style="menuStyle"
       >
+        <RouterLink
+          to="/search"
+          class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors dark:text-slate-200 dark:hover:bg-slate-700"
+          @click="closeMenu"
+        >
+          テキスト検索
+        </RouterLink>
+        <div class="my-1 border-t border-slate-200 dark:border-slate-700"></div>
         <button
           type="button"
           class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors dark:text-slate-200 dark:hover:bg-slate-700"
