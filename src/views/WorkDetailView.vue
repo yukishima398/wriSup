@@ -17,15 +17,10 @@ import {
 } from '@/repositories/foreshadowRepository'
 import {
   listChaptersByWork,
-  createChapter,
-  updateChapter,
-  deleteChapter,
-  moveChapterUp,
-  moveChapterDown,
 } from '@/repositories/chapterRepository'
 import type { Work } from '@/types/work'
 import type { Scene, SceneInput } from '@/types/scene'
-import type { Chapter, ChapterInput } from '@/types/chapter'
+import type { Chapter } from '@/types/chapter'
 import type {
   Foreshadow,
   ForeshadowStatus,
@@ -33,7 +28,6 @@ import type {
 } from '@/types/foreshadow'
 import SceneFormDialog from '@/components/SceneFormDialog.vue'
 import ForeshadowFormDialog from '@/components/ForeshadowFormDialog.vue'
-import ChapterFormDialog from '@/components/ChapterFormDialog.vue'
 import ChapterManagerDialog from '@/components/ChapterManagerDialog.vue'
 import SceneExportDialog from '@/components/SceneExportDialog.vue'
 import SceneCopyRangeDialog from '@/components/SceneCopyRangeDialog.vue'
@@ -92,10 +86,6 @@ const editingForeshadow = ref<Foreshadow | null>(null)
 const chapters = ref<Chapter[]>([])
 // シーン一覧を絞り込む章('all'=全て, 'unassigned'=未分類, number=その章のみ)
 const chapterFilter = ref<number | 'all' | 'unassigned'>('all')
-// 章ダイアログの状態
-const isChapterDialogOpen = ref(false)
-// 編集対象の章　null なら新規作成モード
-const editingChapter = ref<Chapter | null>(null)
 // 章管理(並び替え)ダイアログの状態
 const isChapterManagerDialogOpen = ref(false)
 // テキストファイル変換ダイアログの状態
@@ -524,12 +514,6 @@ function getSceneLabel(sceneId: number | undefined): string {
   return `#${scene.order} ${scene.title || '無題'}`
 }
 
-// 現在フィルタ中の章(数値を選んでいるときだけ値を持つ)
-const selectedChapter = computed(() => {
-  if (typeof chapterFilter.value !== 'number') return undefined
-  return chapters.value.find((c) => c.id === chapterFilter.value)
-})
-
 // 章フィルタを適用したシーン一覧(順序は scenes と同じ order 昇順を維持)
 const filteredScenes = computed(() => {
   if (chapterFilter.value === 'all') {
@@ -701,18 +685,6 @@ function selectChapterFilter(filter: number | 'all' | 'unassigned') {
   chapterFilter.value = filter
 }
 
-// 編集章ダイアログを開く
-function openEditChapterDialog(chapter: Chapter) {
-  editingChapter.value = chapter
-  isChapterDialogOpen.value = true
-}
-
-// 章ダイアログを閉じる
-function closeChapterDialog() {
-  isChapterDialogOpen.value = false
-  editingChapter.value = null
-}
-
 // 章管理(並び替え)ダイアログを開く
 function openChapterManagerDialog() {
   isChapterManagerDialogOpen.value = true
@@ -731,79 +703,6 @@ function openSceneExportDialog() {
 // テキストファイル変換ダイアログを閉じる
 function closeSceneExportDialog() {
   isSceneExportDialogOpen.value = false
-}
-
-// 章保存処理
-async function handleChapterSubmit(input: ChapterInput) {
-  try {
-    if (editingChapter.value && editingChapter.value.id !== undefined) {
-      // 編集モード
-      await updateChapter({
-        id: editingChapter.value.id,
-        ...input,
-      })
-    } else {
-      // 新規作成モード
-      await createChapter(input)
-    }
-    closeChapterDialog()
-    await refreshChapters()
-  } catch (e) {
-    alert(e instanceof Error ? e.message : '保存に失敗しました')
-  }
-}
-
-// 章削除処理(所属シーンは削除せず「未分類」に戻る)
-async function handleDeleteChapter(chapter: Chapter) {
-  if (chapter.id === undefined) return
-
-  const confirmed = window.confirm(
-    `章「${chapter.title}」を削除しますか?\n\nこの章に属するシーンは削除されず、「未分類」に戻ります　`
-  )
-  if (!confirmed) return
-
-  try {
-    await deleteChapter(chapter.id)
-    // この章を表示中だった場合は「全て」に戻す
-    if (chapterFilter.value === chapter.id) {
-      chapterFilter.value = 'all'
-    }
-    await Promise.all([refreshChapters(), refreshScenes()])
-  } catch (e) {
-    alert(e instanceof Error ? e.message : '削除に失敗しました')
-  }
-}
-
-// 章を1つ上に移動
-async function handleMoveChapterUp(chapter: Chapter) {
-  if (chapter.id === undefined) return
-  try {
-    await moveChapterUp(chapter.id)
-    await refreshChapters()
-  } catch (e) {
-    alert(e instanceof Error ? e.message : '移動に失敗しました')
-  }
-}
-
-// 章を1つ下に移動
-async function handleMoveChapterDown(chapter: Chapter) {
-  if (chapter.id === undefined) return
-  try {
-    await moveChapterDown(chapter.id)
-    await refreshChapters()
-  } catch (e) {
-    alert(e instanceof Error ? e.message : '移動に失敗しました')
-  }
-}
-
-// 章の「これ以上上に動かせない」かどうか
-function isFirstChapter(chapter: Chapter): boolean {
-  return chapters.value[0]?.id === chapter.id
-}
-
-// 章の「これ以上下に動かせない」かどうか
-function isLastChapter(chapter: Chapter): boolean {
-  return chapters.value[chapters.value.length - 1]?.id === chapter.id
 }
 </script>
 
@@ -859,36 +758,6 @@ function isLastChapter(chapter: Chapter): boolean {
           合計 {{ summaryCharStats.total.toLocaleString() }}文字 / 平均 {{ summaryCharStats.average.toLocaleString() }}文字
         </span>
       </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <button
-          type="button"
-          class="px-3 py-2 text-sm font-medium rounded-md transition-colors"
-          :class="copyState === 'success'
-            ? 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300'
-            : copyState === 'error'
-              ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
-          :disabled="scenes.length === 0"
-          @click="openSceneCopyDialog"
-        >
-          {{ copyButtonLabel }}
-        </button>
-        <button
-          type="button"
-          class="px-3 py-2 text-sm font-medium rounded-md bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700"
-          :disabled="scenes.length === 0"
-          @click="openSceneExportDialog"
-        >
-          ローカルDL
-        </button>
-        <button
-          type="button"
-          class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium"
-          @click="openCreateSceneDialog"
-        >
-          + 新規シーン
-        </button>
-      </div>
     </div>
 
         <!-- 章タブ -->
@@ -934,40 +803,14 @@ function isLastChapter(chapter: Chapter): boolean {
           </button>
         </div>
 
-        <!-- 選択中の章の管理コントロール -->
-        <div v-if="selectedChapter" class="flex items-center gap-1 mb-4 text-sm text-slate-500 dark:text-slate-400">
-          <span class="mr-1">「{{ selectedChapter.title }}」:</span>
+        <!-- 新規シーン追加 -->
+        <div class="mb-4  flex justify-end">
           <button
             type="button"
-            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300 dark:hover:bg-slate-700"
-            :disabled="isFirstChapter(selectedChapter)"
-            title="章を上に移動"
-            @click="handleMoveChapterUp(selectedChapter)"
+            class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium"
+            @click="openCreateSceneDialog"
           >
-            ↑
-          </button>
-          <button
-            type="button"
-            class="px-2 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed dark:text-slate-300 dark:hover:bg-slate-700"
-            :disabled="isLastChapter(selectedChapter)"
-            title="章を下に移動"
-            @click="handleMoveChapterDown(selectedChapter)"
-          >
-            ↓
-          </button>
-          <button
-            type="button"
-            class="px-3 py-1 text-slate-600 hover:bg-slate-100 rounded-md transition-colors dark:text-slate-300 dark:hover:bg-slate-700"
-            @click="openEditChapterDialog(selectedChapter)"
-          >
-            編集
-          </button>
-          <button
-            type="button"
-            class="px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
-            @click="handleDeleteChapter(selectedChapter)"
-          >
-            削除
+            + 新規シーン
           </button>
         </div>
 
@@ -977,7 +820,7 @@ function isLastChapter(chapter: Chapter): boolean {
           class="bg-white rounded-lg border border-slate-200 p-8 text-center dark:bg-slate-800 dark:border-slate-700"
         >
           <p class="text-slate-600 mb-2 dark:text-slate-300">まだシーンが登録されていません　</p>
-          <p class="text-sm text-slate-500 dark:text-slate-400">右上の「+ 新規シーン」から追加してください　</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400">上の「+ 新規シーン」から追加してください　</p>
         </div>
 
         <!-- シーンはあるが、選択中の章には0件の時 -->
@@ -1170,7 +1013,8 @@ function isLastChapter(chapter: Chapter): boolean {
 
           </article>
         </TransitionGroup>
-        <div class="flex justify-end w-full">
+        <!-- シーンが1つ以上あるときだけ表示 -->
+        <div v-if="scenes.length > 0" class="flex justify-end w-full">
           <button
             type="button"
             class="px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 transition-colors text-sm font-medium mt-4"
@@ -1399,6 +1243,31 @@ function isLastChapter(chapter: Chapter): boolean {
   </div>
 </section>
 
+      <!-- シーン選択コピー・ローカルDL -->
+      <div class="flex items-center justify-end gap-2 flex-wrap mt-10">
+        <button
+          type="button"
+          class="px-3 py-2 text-sm font-medium rounded-md transition-colors"
+          :class="copyState === 'success'
+            ? 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300'
+            : copyState === 'error'
+              ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700'"
+          :disabled="scenes.length === 0"
+          @click="openSceneCopyDialog"
+        >
+          {{ copyButtonLabel }}
+        </button>
+        <button
+          type="button"
+          class="px-3 py-2 text-sm font-medium rounded-md bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-700"
+          :disabled="scenes.length === 0"
+          @click="openSceneExportDialog"
+        >
+          ローカルDL
+        </button>
+      </div>
+
       <!-- シーン追加・編集ダイアログ -->
       <SceneFormDialog
         :is-open="isSceneDialogOpen"
@@ -1409,14 +1278,6 @@ function isLastChapter(chapter: Chapter): boolean {
         @close="closeSceneDialog"
         @submit="handleSceneSubmit"
         @scenes-bulk-updated="refreshScenes"
-      />
-      <!-- 章追加・編集ダイアログ -->
-      <ChapterFormDialog
-        :is-open="isChapterDialogOpen"
-        :work-id="workId"
-        :editing-chapter="editingChapter ?? undefined"
-        @close="closeChapterDialog"
-        @submit="handleChapterSubmit"
       />
       <!-- 章編集(並び替え)ダイアログ -->
       <ChapterManagerDialog
