@@ -82,7 +82,7 @@ function handleCancel() {
           v-model="title"
           type="text"
           class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:border-slate-600"
-          placeholder="例:第一章 出会い"
+          placeholder="例:第一章"
           @keyup.enter="handleSubmit"
         />
       </div>
